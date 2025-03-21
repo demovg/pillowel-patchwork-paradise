@@ -123,7 +123,7 @@ const Collections = () => {
                 <p className="text-pillowel-600 mb-4">
                   A vibrant celebration of color and natural textures. Launching April 2024.
                 </p>
-                <button className="text-sm font-medium underline" disabled>
+                <button className="text-sm font-medium underline">
                   Join the waitlist
                 </button>
               </div>
@@ -132,7 +132,7 @@ const Collections = () => {
                 <p className="text-pillowel-600 mb-4">
                   A special collection featuring handcrafted pieces by global artisans. Launching May 2024.
                 </p>
-                <button className="text-sm font-medium underline" disabled>
+                <button className="text-sm font-medium underline">
                   Join the waitlist
                 </button>
               </div>

@@ -5,6 +5,7 @@ import { AuthContext } from '../App';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { 
   LayoutDashboard, Package, Users, ShoppingBag, Settings, LogOut,
   Edit, Trash, Plus, Search
@@ -12,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 // Mock data
-const orders = [
+const initialOrders = [
   { id: '#ORD-001', customer: 'John Smith', date: '2023-05-12', status: 'Delivered', total: 145.00 },
   { id: '#ORD-002', customer: 'Emily Johnson', date: '2023-05-15', status: 'Processing', total: 89.50 },
   { id: '#ORD-003', customer: 'Michael Brown', date: '2023-05-16', status: 'Shipped', total: 215.75 },
@@ -20,7 +21,7 @@ const orders = [
   { id: '#ORD-005', customer: 'David Lee', date: '2023-05-20', status: 'Delivered', total: 178.30 }
 ];
 
-const products = [
+const initialProducts = [
   { id: '1', name: 'Organic Cotton Sweater', stock: 24, price: 120, category: 'Knitwear' },
   { id: '2', name: 'Merino Wool Cardigan', stock: 18, price: 145, category: 'Knitwear' },
   { id: '3', name: 'Linen Blend Shirt', stock: 32, price: 85, category: 'Shirts' },
@@ -42,13 +43,44 @@ const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("dashboard");
+  
+  // State for products management
+  const [products, setProducts] = useState(initialProducts);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [orders, setOrders] = useState(initialOrders);
+  
+  // State for edit/delete dialogs
+  const [editDialog, setEditDialog] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState<any>(null);
+  const [addProductDialog, setAddProductDialog] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    category: '',
+    stock: 0,
+    price: 0
+  });
+  
+  // State for store settings and password
+  const [storeSettings, setStoreSettings] = useState({
+    name: 'Pillowel',
+    email: 'hello@pillowel.com',
+    phone: '+1 (234) 567-890',
+    address: '123 Fashion Avenue, New York'
+  });
+  
+  const [passwordForm, setPasswordForm] = useState({
+    current: '',
+    new: '',
+    confirm: ''
+  });
 
   // Make sure only admins can access this page
   if (!isAdmin) {
     navigate('/admin/login');
     return null;
   }
-
+  
   const handleLogout = () => {
     logout();
     toast({
@@ -56,6 +88,100 @@ const Admin = () => {
       description: "You have been successfully logged out of the admin panel.",
     });
     navigate('/');
+  };
+  
+  // Product management handlers
+  const handleEditProduct = (product: any) => {
+    setCurrentProduct(product);
+    setEditDialog(true);
+  };
+  
+  const handleUpdateProduct = () => {
+    if (!currentProduct) return;
+    
+    setProducts(products.map(p => 
+      p.id === currentProduct.id ? currentProduct : p
+    ));
+    
+    setEditDialog(false);
+    toast({
+      title: "Product Updated",
+      description: `${currentProduct.name} has been updated successfully.`,
+    });
+  };
+  
+  const handleDeleteConfirm = (product: any) => {
+    setCurrentProduct(product);
+    setDeleteDialog(true);
+  };
+  
+  const handleDeleteProduct = () => {
+    if (!currentProduct) return;
+    
+    setProducts(products.filter(p => p.id !== currentProduct.id));
+    setDeleteDialog(false);
+    toast({
+      title: "Product Deleted",
+      description: `${currentProduct.name} has been deleted successfully.`,
+    });
+  };
+  
+  const handleAddProduct = () => {
+    const id = (products.length + 1).toString();
+    const product = { id, ...newProduct };
+    setProducts([...products, product]);
+    setAddProductDialog(false);
+    setNewProduct({ name: '', category: '', stock: 0, price: 0 });
+    toast({
+      title: "Product Added",
+      description: `${newProduct.name} has been added successfully.`,
+    });
+  };
+  
+  const filteredProducts = searchTerm 
+    ? products.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        p.category.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : products;
+    
+  // Settings handlers
+  const handleSaveSettings = () => {
+    toast({
+      title: "Settings Saved",
+      description: "Your store information has been updated successfully.",
+    });
+  };
+  
+  const handleUpdatePassword = () => {
+    if (passwordForm.new !== passwordForm.confirm) {
+      toast({
+        variant: "destructive",
+        title: "Password Mismatch",
+        description: "New password and confirmation don't match.",
+      });
+      return;
+    }
+    
+    if (passwordForm.current !== "admin123") {
+      toast({
+        variant: "destructive",
+        title: "Incorrect Password",
+        description: "Your current password is incorrect.",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Password Updated",
+      description: "Your password has been updated successfully.",
+    });
+    
+    setPasswordForm({
+      current: '',
+      new: '',
+      confirm: ''
+    });
   };
 
   return (
@@ -204,7 +330,7 @@ const Admin = () => {
             <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-medium">Recent Orders</h3>
-                <Button variant="outline" size="sm">View All</Button>
+                <Button variant="outline" size="sm" onClick={() => setActiveTab("orders")}>View All</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -247,7 +373,10 @@ const Admin = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <Button 
                 className="h-auto py-6 flex-col"
-                onClick={() => setActiveTab("products")}
+                onClick={() => {
+                  setActiveTab("products");
+                  setAddProductDialog(true);
+                }}
               >
                 <Package className="h-6 w-6 mb-2" />
                 <span>Add New Product</span>
@@ -282,9 +411,11 @@ const Admin = () => {
                   <Input 
                     placeholder="Search products..." 
                     className="pl-10 w-full sm:w-60"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button>
+                <Button onClick={() => setAddProductDialog(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Product
                 </Button>
@@ -304,7 +435,7 @@ const Admin = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {products.map((product) => (
+                    {filteredProducts.map((product) => (
                       <tr key={product.id} className="border-t border-gray-100">
                         <td className="px-6 py-4 font-medium">{product.name}</td>
                         <td className="px-6 py-4">{product.category}</td>
@@ -318,10 +449,10 @@ const Admin = () => {
                         </td>
                         <td className="px-6 py-4">${product.price.toFixed(2)}</td>
                         <td className="px-6 py-4 text-right">
-                          <Button variant="ghost" size="sm" className="mr-2">
+                          <Button variant="ghost" size="sm" className="mr-2" onClick={() => handleEditProduct(product)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteConfirm(product)}>
                             <Trash className="h-4 w-4" />
                           </Button>
                         </td>
@@ -382,7 +513,17 @@ const Admin = () => {
                         </td>
                         <td className="px-6 py-4 text-right">${order.total.toFixed(2)}</td>
                         <td className="px-6 py-4 text-right">
-                          <Button variant="ghost" size="sm" className="mr-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="mr-2"
+                            onClick={() => {
+                              toast({
+                                title: "Edit Order",
+                                description: `Editing order ${order.id}`,
+                              });
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                         </td>
@@ -430,7 +571,17 @@ const Admin = () => {
                         <td className="px-6 py-4">{customer.orders}</td>
                         <td className="px-6 py-4 text-right">${customer.total.toFixed(2)}</td>
                         <td className="px-6 py-4 text-right">
-                          <Button variant="ghost" size="sm" className="mr-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="mr-2"
+                            onClick={() => {
+                              toast({
+                                title: "Edit Customer",
+                                description: `Editing customer ${customer.name}`,
+                              });
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                         </td>
@@ -454,28 +605,44 @@ const Admin = () => {
                   <label htmlFor="store-name" className="text-sm font-medium">
                     Store Name
                   </label>
-                  <Input id="store-name" defaultValue="Pillowel" />
+                  <Input 
+                    id="store-name" 
+                    value={storeSettings.name}
+                    onChange={(e) => setStoreSettings({...storeSettings, name: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="store-email" className="text-sm font-medium">
                     Email Address
                   </label>
-                  <Input id="store-email" defaultValue="hello@pillowel.com" />
+                  <Input 
+                    id="store-email" 
+                    value={storeSettings.email}
+                    onChange={(e) => setStoreSettings({...storeSettings, email: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="store-phone" className="text-sm font-medium">
                     Phone Number
                   </label>
-                  <Input id="store-phone" defaultValue="+1 (234) 567-890" />
+                  <Input 
+                    id="store-phone" 
+                    value={storeSettings.phone}
+                    onChange={(e) => setStoreSettings({...storeSettings, phone: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="store-address" className="text-sm font-medium">
                     Address
                   </label>
-                  <Input id="store-address" defaultValue="123 Fashion Avenue, New York" />
+                  <Input 
+                    id="store-address" 
+                    value={storeSettings.address}
+                    onChange={(e) => setStoreSettings({...storeSettings, address: e.target.value})}
+                  />
                 </div>
               </div>
-              <Button className="mt-6">Save Changes</Button>
+              <Button className="mt-6" onClick={handleSaveSettings}>Save Changes</Button>
             </div>
             
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -485,27 +652,202 @@ const Admin = () => {
                   <label htmlFor="current-password" className="text-sm font-medium">
                     Current Password
                   </label>
-                  <Input id="current-password" type="password" />
+                  <Input 
+                    id="current-password" 
+                    type="password"
+                    value={passwordForm.current}
+                    onChange={(e) => setPasswordForm({...passwordForm, current: e.target.value})}
+                  />
                 </div>
                 <div></div>
                 <div className="space-y-2">
                   <label htmlFor="new-password" className="text-sm font-medium">
                     New Password
                   </label>
-                  <Input id="new-password" type="password" />
+                  <Input 
+                    id="new-password" 
+                    type="password"
+                    value={passwordForm.new}
+                    onChange={(e) => setPasswordForm({...passwordForm, new: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="confirm-password" className="text-sm font-medium">
                     Confirm New Password
                   </label>
-                  <Input id="confirm-password" type="password" />
+                  <Input 
+                    id="confirm-password" 
+                    type="password"
+                    value={passwordForm.confirm}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirm: e.target.value})}
+                  />
                 </div>
               </div>
-              <Button className="mt-6">Update Password</Button>
+              <Button className="mt-6" onClick={handleUpdatePassword}>Update Password</Button>
             </div>
           </div>
         )}
       </main>
+      
+      {/* Edit Product Dialog */}
+      <Dialog open={editDialog} onOpenChange={setEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <DialogDescription>
+              Make changes to this product. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {currentProduct && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium">
+                  Product Name
+                </label>
+                <Input 
+                  id="name" 
+                  value={currentProduct.name}
+                  onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="category" className="text-sm font-medium">
+                  Category
+                </label>
+                <Input 
+                  id="category" 
+                  value={currentProduct.category}
+                  onChange={(e) => setCurrentProduct({...currentProduct, category: e.target.value})}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="stock" className="text-sm font-medium">
+                    Stock
+                  </label>
+                  <Input 
+                    id="stock" 
+                    type="number"
+                    value={currentProduct.stock}
+                    onChange={(e) => setCurrentProduct({...currentProduct, stock: parseInt(e.target.value)})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="price" className="text-sm font-medium">
+                    Price
+                  </label>
+                  <Input 
+                    id="price" 
+                    type="number"
+                    value={currentProduct.price}
+                    onChange={(e) => setCurrentProduct({...currentProduct, price: parseFloat(e.target.value)})}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialog(false)}>Cancel</Button>
+            <Button onClick={handleUpdateProduct}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog} onOpenChange={setDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Product</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this product? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {currentProduct && (
+            <div className="py-4">
+              <p className="font-medium">{currentProduct.name}</p>
+              <p className="text-sm text-gray-500">{currentProduct.category} - ${currentProduct.price.toFixed(2)}</p>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialog(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteProduct}>Delete Product</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Product Dialog */}
+      <Dialog open={addProductDialog} onOpenChange={setAddProductDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Product</DialogTitle>
+            <DialogDescription>
+              Fill in the details for the new product.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="new-name" className="text-sm font-medium">
+                Product Name
+              </label>
+              <Input 
+                id="new-name" 
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="new-category" className="text-sm font-medium">
+                Category
+              </label>
+              <Input 
+                id="new-category" 
+                value={newProduct.category}
+                onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="new-stock" className="text-sm font-medium">
+                  Stock
+                </label>
+                <Input 
+                  id="new-stock" 
+                  type="number"
+                  value={newProduct.stock}
+                  onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="new-price" className="text-sm font-medium">
+                  Price
+                </label>
+                <Input 
+                  id="new-price" 
+                  type="number"
+                  value={newProduct.price}
+                  onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddProductDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddProduct}>Add Product</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

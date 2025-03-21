@@ -11,7 +11,7 @@ const Hero = () => {
           <div className="md:col-span-5 space-y-8 animate-fade-up">
             <div className="space-y-4">
               <div className="inline-block px-3 py-1 rounded-full bg-black/5 border border-black/10 text-xs font-medium">
-                New Collection
+                <Link to="/collections/new-collection">New Collection</Link>
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight">
                 Timeless Elegance for Modern Living

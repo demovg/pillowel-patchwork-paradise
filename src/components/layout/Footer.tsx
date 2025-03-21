@@ -17,28 +17,34 @@ const Footer = () => {
             </p>
             <div className="flex space-x-5">
               <a 
-                href="#" 
+                href="https://instagram.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-pillowel-600 hover:text-black transition-colors duration-200"
                 aria-label="Instagram"
               >
                 <Instagram size={20} />
               </a>
               <a 
-                href="#" 
+                href="https://twitter.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-pillowel-600 hover:text-black transition-colors duration-200"
                 aria-label="Twitter"
               >
                 <Twitter size={20} />
               </a>
               <a 
-                href="#" 
+                href="https://facebook.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-pillowel-600 hover:text-black transition-colors duration-200"
                 aria-label="Facebook"
               >
                 <Facebook size={20} />
               </a>
               <a 
-                href="#" 
+                href="mailto:info@pillowel.com" 
                 className="text-pillowel-600 hover:text-black transition-colors duration-200"
                 aria-label="Email"
               >
@@ -51,10 +57,10 @@ const Footer = () => {
           <div className="space-y-6">
             <h3 className="font-medium text-base uppercase tracking-wider">Shop</h3>
             <ul className="space-y-4">
-              <li><Link to="/shop/all" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">All Products</Link></li>
+              <li><Link to="/shop" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">All Products</Link></li>
               <li><Link to="/shop/clothing" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Clothing</Link></li>
               <li><Link to="/shop/accessories" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Accessories</Link></li>
-              <li><Link to="/shop/collections" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Collections</Link></li>
+              <li><Link to="/collections" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Collections</Link></li>
               <li><Link to="/shop/sale" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Sale</Link></li>
             </ul>
           </div>
@@ -64,9 +70,9 @@ const Footer = () => {
             <h3 className="font-medium text-base uppercase tracking-wider">Company</h3>
             <ul className="space-y-4">
               <li><Link to="/about" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">About Us</Link></li>
-              <li><Link to="/sustainability" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Sustainability</Link></li>
-              <li><Link to="/careers" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Careers</Link></li>
-              <li><Link to="/stores" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Stores</Link></li>
+              <li><Link to="/about/sustainability" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Sustainability</Link></li>
+              <li><Link to="/about/careers" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Careers</Link></li>
+              <li><Link to="/about/stores" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Stores</Link></li>
               <li><Link to="/contact" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Contact</Link></li>
             </ul>
           </div>
@@ -75,7 +81,7 @@ const Footer = () => {
           <div className="space-y-6">
             <h3 className="font-medium text-base uppercase tracking-wider">Help</h3>
             <ul className="space-y-4">
-              <li><Link to="/customer-care" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Customer Care</Link></li>
+              <li><Link to="/contact/customer-care" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Customer Care</Link></li>
               <li><Link to="/shipping" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Shipping & Returns</Link></li>
               <li><Link to="/size-guide" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Size Guide</Link></li>
               <li><Link to="/faq" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">FAQs</Link></li>

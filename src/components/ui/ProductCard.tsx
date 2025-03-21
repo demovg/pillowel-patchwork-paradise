@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProductCardProps {
   id: string;
@@ -15,6 +16,29 @@ interface ProductCardProps {
 
 const ProductCard = ({ id, name, price, image, category, isNew = false }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const { toast } = useToast();
+  
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    toast({
+      title: "Added to cart",
+      description: `${name} has been added to your cart.`,
+    });
+  };
+  
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsLiked(!isLiked);
+    
+    toast({
+      title: isLiked ? "Removed from wishlist" : "Added to wishlist",
+      description: `${name} has been ${isLiked ? "removed from" : "added to"} your wishlist.`,
+    });
+  };
   
   return (
     <div 
@@ -53,14 +77,16 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
         >
           <button 
             aria-label="Add to wishlist"
-            className="text-pillowel-800 hover:text-pillowel transition-colors"
+            className={`${isLiked ? "text-red-500" : "text-pillowel-800"} hover:text-pillowel transition-colors`}
+            onClick={handleLike}
           >
-            <Heart size={18} />
+            <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
           </button>
           
           <button 
             aria-label="Add to cart"
             className="text-white bg-black hover:bg-pillowel-800 transition-colors px-4 py-1.5 text-xs font-medium flex items-center space-x-1 rounded-sm"
+            onClick={handleAddToCart}
           >
             <ShoppingBag size={14} />
             <span>Add to cart</span>

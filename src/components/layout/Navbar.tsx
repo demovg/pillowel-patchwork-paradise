@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShoppingBag, Menu, X, User } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SearchMenu, UserMenu, CartMenu } from './NavMenu';
 
 const navLinks = [
   { name: 'Home', path: '/' },
@@ -63,22 +64,14 @@ const Navbar = () => {
 
         {/* Desktop Icons */}
         <div className="hidden md:flex items-center space-x-6">
-          <button aria-label="Search" className="w-6 h-6 flex items-center justify-center text-pillowel-800 hover:text-black transition-colors duration-200">
-            <Search className="h-5 w-5" />
-          </button>
-          <button aria-label="Account" className="w-6 h-6 flex items-center justify-center text-pillowel-800 hover:text-black transition-colors duration-200">
-            <User className="h-5 w-5" />
-          </button>
-          <button aria-label="Shopping Bag" className="w-6 h-6 flex items-center justify-center text-pillowel-800 hover:text-black transition-colors duration-200">
-            <ShoppingBag className="h-5 w-5" />
-          </button>
+          <SearchMenu />
+          <UserMenu />
+          <CartMenu />
         </div>
 
         {/* Mobile Menu Toggle */}
         <div className="flex md:hidden items-center space-x-4">
-          <button aria-label="Shopping Bag" className="w-6 h-6 flex items-center justify-center text-pillowel-800">
-            <ShoppingBag className="h-5 w-5" />
-          </button>
+          <CartMenu />
           <button
             aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
             onClick={toggleMenu}
@@ -108,10 +101,10 @@ const Navbar = () => {
             </Link>
           ))}
           <div className="pt-6 flex flex-col space-y-8">
-            <Link to="/account" className="text-2xl font-medium text-pillowel-800">
+            <Link to="/account" className="text-2xl font-medium text-pillowel-800" onClick={() => setIsMenuOpen(false)}>
               Account
             </Link>
-            <Link to="/search" className="text-2xl font-medium text-pillowel-800">
+            <Link to="/search" className="text-2xl font-medium text-pillowel-800" onClick={() => setIsMenuOpen(false)}>
               Search
             </Link>
           </div>
