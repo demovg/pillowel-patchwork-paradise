@@ -58,10 +58,10 @@ const Footer = () => {
             <h3 className="font-medium text-base uppercase tracking-wider">Shop</h3>
             <ul className="space-y-4">
               <li><Link to="/shop" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">All Products</Link></li>
-              <li><Link to="/shop/clothing" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Clothing</Link></li>
-              <li><Link to="/shop/accessories" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Accessories</Link></li>
+              <li><Link to="/shop" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Clothing</Link></li>
+              <li><Link to="/shop" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Accessories</Link></li>
               <li><Link to="/collections" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Collections</Link></li>
-              <li><Link to="/shop/sale" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Sale</Link></li>
+              <li><Link to="/shop" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Sale</Link></li>
             </ul>
           </div>
 
@@ -70,9 +70,9 @@ const Footer = () => {
             <h3 className="font-medium text-base uppercase tracking-wider">Company</h3>
             <ul className="space-y-4">
               <li><Link to="/about" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">About Us</Link></li>
-              <li><Link to="/about/sustainability" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Sustainability</Link></li>
-              <li><Link to="/about/careers" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Careers</Link></li>
-              <li><Link to="/about/stores" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Stores</Link></li>
+              <li><Link to="/about" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Sustainability</Link></li>
+              <li><Link to="/about" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Careers</Link></li>
+              <li><Link to="/about" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Stores</Link></li>
               <li><Link to="/contact" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Contact</Link></li>
             </ul>
           </div>
@@ -81,11 +81,11 @@ const Footer = () => {
           <div className="space-y-6">
             <h3 className="font-medium text-base uppercase tracking-wider">Help</h3>
             <ul className="space-y-4">
-              <li><Link to="/contact/customer-care" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Customer Care</Link></li>
-              <li><Link to="/shipping" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Shipping & Returns</Link></li>
-              <li><Link to="/size-guide" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Size Guide</Link></li>
+              <li><Link to="/contact" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Customer Care</Link></li>
+              <li><Link to="/faq" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Shipping & Returns</Link></li>
+              <li><Link to="/faq" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Size Guide</Link></li>
               <li><Link to="/faq" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">FAQs</Link></li>
-              <li><Link to="/privacy" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Privacy Policy</Link></li>
+              <li><Link to="/faq" className="text-pillowel-600 hover:text-black transition-colors text-sm duration-200">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>
@@ -95,13 +95,13 @@ const Footer = () => {
             © {new Date().getFullYear()} Pillowel. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/terms" className="text-pillowel-600 hover:text-black transition-colors text-xs duration-200">
+            <Link to="/faq" className="text-pillowel-600 hover:text-black transition-colors text-xs duration-200">
               Terms of Service
             </Link>
-            <Link to="/privacy" className="text-pillowel-600 hover:text-black transition-colors text-xs duration-200">
+            <Link to="/faq" className="text-pillowel-600 hover:text-black transition-colors text-xs duration-200">
               Privacy Policy
             </Link>
-            <Link to="/cookies" className="text-pillowel-600 hover:text-black transition-colors text-xs duration-200">
+            <Link to="/faq" className="text-pillowel-600 hover:text-black transition-colors text-xs duration-200">
               Cookies
             </Link>
           </div>

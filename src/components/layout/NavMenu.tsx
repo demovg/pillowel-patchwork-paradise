@@ -12,36 +12,33 @@ import { cn } from "@/lib/utils"
 import { Link } from "react-router-dom"
 import { Search, ShoppingBag, User } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 export function SearchMenu() {
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger className="bg-transparent">
-            <Search className="h-5 w-5" />
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-4 bg-white shadow-lg rounded-md border w-[320px] right-0">
-            <div className="space-y-4">
-              <h4 className="font-medium">Search</h4>
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
-              />
-              <div className="text-sm text-gray-500">
-                <p>Popular searches:</p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <Link to="/shop/sweaters" className="text-xs bg-gray-100 px-2 py-1 rounded">Sweaters</Link>
-                  <Link to="/shop/accessories" className="text-xs bg-gray-100 px-2 py-1 rounded">Accessories</Link>
-                  <Link to="/shop/new" className="text-xs bg-gray-100 px-2 py-1 rounded">New Arrivals</Link>
-                </div>
-              </div>
+    <Popover>
+      <PopoverTrigger>
+        <Search className="h-5 w-5" />
+      </PopoverTrigger>
+      <PopoverContent className="p-4 w-[320px] right-0">
+        <div className="space-y-4">
+          <h4 className="font-medium">Search</h4>
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
+          />
+          <div className="text-sm text-gray-500">
+            <p>Recent searches:</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Link to="/shop" className="text-xs bg-gray-100 px-2 py-1 rounded">Sweaters</Link>
+              <Link to="/shop" className="text-xs bg-gray-100 px-2 py-1 rounded">Cotton</Link>
+              <Link to="/shop" className="text-xs bg-gray-100 px-2 py-1 rounded">Accessories</Link>
             </div>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -53,7 +50,7 @@ export function UserMenu() {
           <NavigationMenuTrigger className="bg-transparent">
             <User className="h-5 w-5" />
           </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-4 bg-white shadow-lg rounded-md border w-[240px] right-0">
+          <NavigationMenuContent className="p-4 bg-white shadow-lg rounded-md border w-[240px] right-0 z-50">
             <ul className="space-y-3">
               <li>
                 <Link to="/login" className="block text-sm hover:underline">Login</Link>
@@ -98,7 +95,7 @@ export function CartMenu() {
           <NavigationMenuTrigger className="bg-transparent">
             <ShoppingBag className="h-5 w-5" />
           </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-4 bg-white shadow-lg rounded-md border w-[300px] right-0">
+          <NavigationMenuContent className="p-4 bg-white shadow-lg rounded-md border w-[300px] right-0 z-50">
             <div className="space-y-4">
               <h4 className="font-medium">Your Cart (2)</h4>
               

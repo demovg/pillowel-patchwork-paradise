@@ -5,7 +5,8 @@ import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/ui/ProductCard';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import { Filter } from 'lucide-react';
+import SortMenu from '@/components/shop/SortMenu';
 
 // Sample product data - in a real app, this would come from an API
 const products = [
@@ -90,6 +91,7 @@ const Shop = () => {
   const [priceRange, setPriceRange] = useState([0, 250]);
   const [showNewOnly, setShowNewOnly] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [sortOption, setSortOption] = useState("Newest");
 
   // Filter products based on selected filters
   const filteredProducts = products.filter((product) => {
@@ -98,6 +100,23 @@ const Shop = () => {
     const matchesNewFilter = showNewOnly ? product.isNew : true;
     
     return matchesCategory && matchesPriceRange && matchesNewFilter;
+  });
+
+  // Sort products based on selected option
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortOption) {
+      case "Price: Low to High":
+        return a.price - b.price;
+      case "Price: High to Low":
+        return b.price - a.price;
+      case "Popularity":
+        // For demo purposes, just random sorting
+        return 0.5 - Math.random();
+      case "Newest":
+      default:
+        // For demo purposes, just use the isNew property
+        return b.isNew === a.isNew ? 0 : b.isNew ? 1 : -1;
+    }
   });
 
   return (
@@ -188,20 +207,12 @@ const Shop = () => {
             <div className="flex-1">
               <div className="hidden md:flex justify-between items-center mb-6">
                 <p className="text-pillowel-600">{filteredProducts.length} products</p>
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal size={16} />
-                  <span className="text-sm font-medium">Sort by:</span>
-                  <select className="text-sm bg-transparent border-none focus:ring-0">
-                    <option>Newest</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
-                  </select>
-                </div>
+                <SortMenu onSort={setSortOption} />
               </div>
               
-              {filteredProducts.length > 0 ? (
+              {sortedProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProducts.map((product) => (
+                  {sortedProducts.map((product) => (
                     <ProductCard
                       key={product.id}
                       id={product.id}

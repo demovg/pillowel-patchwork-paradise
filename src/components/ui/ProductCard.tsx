@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/components/ui/use-toast";
@@ -18,6 +18,7 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,12 +40,17 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
       description: `${name} has been ${isLiked ? "removed from" : "added to"} your wishlist.`,
     });
   };
+
+  const handleProductClick = () => {
+    navigate(`/product/${id}`);
+  };
   
   return (
     <div 
-      className="group"
+      className="group cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleProductClick}
     >
       <div className="relative overflow-hidden rounded-sm bg-gray-100 mb-4">
         {isNew && (
@@ -55,19 +61,17 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
           </div>
         )}
         
-        <Link to={`/product/${id}`}>
-          <div className="relative aspect-[3/4] overflow-hidden">
-            <img 
-              src={image} 
-              alt={name}
-              loading="lazy"
-              className={cn(
-                "w-full h-full object-cover transition-transform duration-700",
-                isHovered ? "scale-105" : "scale-100"
-              )}
-            />
-          </div>
-        </Link>
+        <div className="relative aspect-[3/4] overflow-hidden">
+          <img 
+            src={image} 
+            alt={name}
+            loading="lazy"
+            className={cn(
+              "w-full h-full object-cover transition-transform duration-700",
+              isHovered ? "scale-105" : "scale-100"
+            )}
+          />
+        </div>
         
         <div 
           className={cn(
@@ -99,12 +103,7 @@ const ProductCard = ({ id, name, price, image, category, isNew = false }: Produc
           {category}
         </div>
         <h3 className="font-medium text-base">
-          <Link 
-            to={`/product/${id}`}
-            className="hover:underline underline-offset-4"
-          >
-            {name}
-          </Link>
+          {name}
         </h3>
         <div className="font-medium text-sm">
           ${price.toFixed(2)}
