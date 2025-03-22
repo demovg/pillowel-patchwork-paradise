@@ -95,7 +95,7 @@ const Admin = () => {
       toast({
         variant: "destructive",
         title: "Missing information",
-        description: "Please fill out all required fields.",
+        description: "Please fill out all required fields."
       });
       return;
     }
@@ -104,7 +104,7 @@ const Admin = () => {
     // For this demo, we'll just show a toast
     toast({
       title: "Product added successfully",
-      description: `${productForm.name} has been added to the inventory.`,
+      description: `${productForm.name} has been added to the inventory.`
     });
     
     // Reset the form
@@ -120,8 +120,10 @@ const Admin = () => {
     });
   };
   
-  // If not logged in as admin, redirect (handled by App.tsx)
+  // Redirect to login if not admin - fix the conditional rendering
   if (!isAdmin) {
+    // Just redirect and don't render anything else
+    navigate('/admin/login');
     return null;
   }
   
