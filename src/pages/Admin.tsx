@@ -11,6 +11,15 @@ import { AuthContext } from '@/App';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Switch } from '@/components/ui/switch';
 
 const Admin = () => {
   const { isAdmin, logout } = useContext(AuthContext);
@@ -27,6 +36,14 @@ const Admin = () => {
     image: null as File | null,
     imagePreview: ''
   });
+
+  // Mock product data for the products table
+  const [products] = useState([
+    { id: 1, name: 'Organic Cotton Sweater', category: 'clothing', price: 120, inventory: 25, active: true },
+    { id: 2, name: 'Merino Wool Cardigan', category: 'clothing', price: 145, inventory: 18, active: true },
+    { id: 3, name: 'Linen Tote Bag', category: 'accessories', price: 45, inventory: 32, active: true },
+    { id: 4, name: 'Ceramic Vase', category: 'home', price: 65, inventory: 12, active: false },
+  ]);
   
   // Function to handle logout
   const handleLogout = () => {
@@ -57,9 +74,32 @@ const Admin = () => {
     }
   };
   
+  // Function to clear image selection
+  const clearImageSelection = () => {
+    if (productForm.imagePreview) {
+      URL.revokeObjectURL(productForm.imagePreview);
+    }
+    setProductForm(prev => ({
+      ...prev,
+      image: null,
+      imagePreview: ''
+    }));
+  };
+  
   // Function to handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form fields
+    if (!productForm.name || !productForm.price || !productForm.category || !productForm.inventory) {
+      toast({
+        variant: "destructive",
+        title: "Missing information",
+        description: "Please fill out all required fields.",
+      });
+      return;
+    }
+    
     // Here you would typically send the data to your backend
     // For this demo, we'll just show a toast
     toast({
@@ -68,6 +108,7 @@ const Admin = () => {
     });
     
     // Reset the form
+    clearImageSelection();
     setProductForm({
       name: '',
       description: '',
@@ -118,7 +159,7 @@ const Admin = () => {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Product Name</Label>
+                        <Label htmlFor="name">Product Name *</Label>
                         <Input 
                           id="name" 
                           name="name" 
@@ -129,7 +170,7 @@ const Admin = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="price">Price ($)</Label>
+                        <Label htmlFor="price">Price ($) *</Label>
                         <Input 
                           id="price" 
                           name="price" 
@@ -143,7 +184,7 @@ const Admin = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="category">Category</Label>
+                        <Label htmlFor="category">Category *</Label>
                         <select 
                           id="category" 
                           name="category" 
@@ -160,7 +201,7 @@ const Admin = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="inventory">Inventory</Label>
+                        <Label htmlFor="inventory">Inventory *</Label>
                         <Input 
                           id="inventory" 
                           name="inventory" 
@@ -180,7 +221,6 @@ const Admin = () => {
                           value={productForm.description} 
                           onChange={handleInputChange} 
                           rows={4} 
-                          required 
                         />
                       </div>
                       
@@ -202,12 +242,19 @@ const Admin = () => {
                             />
                           </label>
                           {productForm.imagePreview && (
-                            <div className="relative h-16 w-16 rounded overflow-hidden">
+                            <div className="relative h-16 w-16 rounded overflow-hidden group">
                               <img 
                                 src={productForm.imagePreview} 
                                 alt="Product preview" 
                                 className="h-full w-full object-cover" 
                               />
+                              <button
+                                type="button"
+                                onClick={clearImageSelection}
+                                className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                Remove
+                              </button>
                             </div>
                           )}
                         </div>
@@ -231,7 +278,7 @@ const Admin = () => {
                   <div className="space-y-6">
                     <div className="space-y-1">
                       <p className="text-sm text-gray-500">Total Products</p>
-                      <p className="text-2xl font-semibold">24</p>
+                      <p className="text-2xl font-semibold">{products.length}</p>
                     </div>
                     
                     <div className="space-y-1">
@@ -239,27 +286,72 @@ const Admin = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>Clothing</span>
-                          <span className="font-medium">12</span>
+                          <span className="font-medium">{products.filter(p => p.category === 'clothing').length}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Accessories</span>
-                          <span className="font-medium">8</span>
+                          <span className="font-medium">{products.filter(p => p.category === 'accessories').length}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Home</span>
-                          <span className="font-medium">4</span>
+                          <span className="font-medium">{products.filter(p => p.category === 'home').length}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="space-y-1">
                       <p className="text-sm text-gray-500">Low Stock Items</p>
-                      <p className="text-lg font-medium">3 products</p>
+                      <p className="text-lg font-medium">{products.filter(p => p.inventory < 20).length} products</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
+            
+            {/* Products Table */}
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Product List</CardTitle>
+                <CardDescription>Manage your existing products</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Inventory</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">{product.id}</TableCell>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell className="capitalize">{product.category}</TableCell>
+                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>{product.inventory}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Switch id={`status-${product.id}`} defaultChecked={product.active} />
+                            <Label htmlFor={`status-${product.id}`}>
+                              {product.active ? 'Active' : 'Inactive'}
+                            </Label>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm">Edit</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="orders">
@@ -269,7 +361,48 @@ const Admin = () => {
                 <CardDescription>Manage customer orders</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-center py-8 text-gray-500">Order management would be implemented here.</p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">#1001</TableCell>
+                      <TableCell>John Smith</TableCell>
+                      <TableCell>March 21, 2025</TableCell>
+                      <TableCell>
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                          Completed
+                        </span>
+                      </TableCell>
+                      <TableCell>$265.00</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">View</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">#1002</TableCell>
+                      <TableCell>Sarah Johnson</TableCell>
+                      <TableCell>March 20, 2025</TableCell>
+                      <TableCell>
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
+                          Processing
+                        </span>
+                      </TableCell>
+                      <TableCell>$120.00</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">View</Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </TabsContent>
@@ -281,7 +414,40 @@ const Admin = () => {
                 <CardDescription>View and manage customer accounts</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-center py-8 text-gray-500">Customer management would be implemented here.</p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead>Orders</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">1</TableCell>
+                      <TableCell>John Smith</TableCell>
+                      <TableCell>john.smith@example.com</TableCell>
+                      <TableCell>Feb 10, 2025</TableCell>
+                      <TableCell>3</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">View</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">2</TableCell>
+                      <TableCell>Sarah Johnson</TableCell>
+                      <TableCell>sarah.j@example.com</TableCell>
+                      <TableCell>Jan 25, 2025</TableCell>
+                      <TableCell>1</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">View</Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </TabsContent>
