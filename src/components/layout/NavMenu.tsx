@@ -3,7 +3,6 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
@@ -13,27 +12,64 @@ import { Link } from "react-router-dom"
 import { Search, ShoppingBag, User } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
+import { useState } from "react"
 
 export function SearchMenu() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [recentSearches, setRecentSearches] = useState([
+    "Sweaters", "Cotton", "Accessories"
+  ]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      // Add to recent searches if not already there
+      if (!recentSearches.includes(searchTerm)) {
+        setRecentSearches(prev => [searchTerm, ...prev.slice(0, 2)]);
+      }
+      // Redirect would happen here in a real implementation
+      window.location.href = `/shop?search=${encodeURIComponent(searchTerm)}`;
+    }
+  };
+
   return (
     <Popover>
-      <PopoverTrigger>
-        <Search className="h-5 w-5" />
+      <PopoverTrigger asChild>
+        <button className="flex items-center hover:text-black/70">
+          <Search className="h-5 w-5" />
+        </button>
       </PopoverTrigger>
-      <PopoverContent className="p-4 w-[320px] right-0">
+      <PopoverContent className="p-4 w-[320px]" align="end" sideOffset={10}>
         <div className="space-y-4">
           <h4 className="font-medium">Search</h4>
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
-          />
+          <form onSubmit={handleSearch} className="flex space-x-2">
+            <Input
+              type="text"
+              placeholder="Search products..."
+              className="w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button 
+              type="submit" 
+              className="bg-black text-white px-3 py-1 rounded-sm text-sm"
+            >
+              Search
+            </button>
+          </form>
           <div className="text-sm text-gray-500">
             <p>Recent searches:</p>
             <div className="flex flex-wrap gap-2 mt-2">
-              <Link to="/shop" className="text-xs bg-gray-100 px-2 py-1 rounded">Sweaters</Link>
-              <Link to="/shop" className="text-xs bg-gray-100 px-2 py-1 rounded">Cotton</Link>
-              <Link to="/shop" className="text-xs bg-gray-100 px-2 py-1 rounded">Accessories</Link>
+              {recentSearches.map((term, i) => (
+                <Link 
+                  key={i} 
+                  to={`/shop?search=${encodeURIComponent(term)}`} 
+                  className="text-xs bg-gray-100 px-2 py-1 rounded"
+                >
+                  {term}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
@@ -47,10 +83,10 @@ export function UserMenu() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger className="bg-transparent">
+          <NavigationMenuTrigger className="h-10 bg-transparent p-0 hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent">
             <User className="h-5 w-5" />
           </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-4 bg-white shadow-lg rounded-md border w-[240px] right-0 z-50">
+          <NavigationMenuContent className="absolute right-0 p-4 bg-white shadow-lg rounded-md border w-[240px] z-[100]">
             <ul className="space-y-3">
               <li>
                 <Link to="/login" className="block text-sm hover:underline">Login</Link>
@@ -92,10 +128,10 @@ export function CartMenu() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger className="bg-transparent">
+          <NavigationMenuTrigger className="h-10 bg-transparent p-0 hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent">
             <ShoppingBag className="h-5 w-5" />
           </NavigationMenuTrigger>
-          <NavigationMenuContent className="p-4 bg-white shadow-lg rounded-md border w-[300px] right-0 z-50">
+          <NavigationMenuContent className="absolute right-0 p-4 bg-white shadow-lg rounded-md border w-[300px] z-[100]">
             <div className="space-y-4">
               <h4 className="font-medium">Your Cart (2)</h4>
               

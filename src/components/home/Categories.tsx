@@ -8,21 +8,21 @@ const categories = [
     name: 'Clothing',
     description: 'Premium garments crafted with exceptional materials',
     image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=3570&auto=format&fit=crop',
-    link: '/shop/clothing'
+    link: '/shop?category=clothing'
   },
   {
     id: 'accessories',
     name: 'Accessories',
     description: 'Elegant additions to elevate any outfit',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?q=80&w=3465&auto=format&fit=crop',
-    link: '/shop/accessories'
+    link: '/shop?category=accessories'
   },
   {
     id: 'home',
     name: 'Home',
     description: 'Beautiful textiles to enhance your living space',
     image: 'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?q=80&w=3647&auto=format&fit=crop',
-    link: '/shop/home'
+    link: '/shop?category=home'
   }
 ];
 
