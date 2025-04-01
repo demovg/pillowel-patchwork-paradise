@@ -9,11 +9,19 @@ import {
 } from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
 import { Link } from "react-router-dom"
-import { Search, ShoppingBag, User } from "lucide-react"
+import { Heart, Search, ShoppingBag, User, LogOut, UserCircle, Settings, Package, ShoppingCart } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu"
 
 export function SearchMenu() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -80,37 +88,109 @@ export function SearchMenu() {
 
 export function UserMenu() {
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger className="h-10 bg-transparent p-0 hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent">
-            <User className="h-5 w-5" />
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="absolute right-0 p-4 bg-white shadow-lg rounded-md border w-[240px] z-[100]">
-            <ul className="space-y-3">
-              <li>
-                <Link to="/login" className="block text-sm hover:underline">Login</Link>
-              </li>
-              <li>
-                <Link to="/register" className="block text-sm hover:underline">Register</Link>
-              </li>
-              <li>
-                <Link to="/account" className="block text-sm hover:underline">My Account</Link>
-              </li>
-              <li>
-                <Link to="/orders" className="block text-sm hover:underline">Order History</Link>
-              </li>
-              <li>
-                <Link to="/wishlist" className="block text-sm hover:underline">Wishlist</Link>
-              </li>
-              <li className="border-t border-gray-100 pt-2">
-                <Link to="/admin/login" className="block text-sm hover:underline">Admin</Link>
-              </li>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center hover:text-black/70">
+          <User className="h-5 w-5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56 p-2">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+          <UserCircle className="h-4 w-4" />
+          <Link to="/account" className="flex-1">Profile</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+          <Package className="h-4 w-4" />
+          <Link to="/orders" className="flex-1">Orders</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+          <Settings className="h-4 w-4" />
+          <Link to="/settings" className="flex-1">Settings</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+          <LogOut className="h-4 w-4" />
+          <span className="flex-1">Logout</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <Link to="/admin/login" className="text-sm text-muted-foreground w-full text-center">
+            Admin Access
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+export function WishlistMenu() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center hover:text-black/70">
+          <Heart className="h-5 w-5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[300px] p-2">
+        <DropdownMenuLabel>My Wishlist (3)</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <div className="max-h-[300px] overflow-y-auto py-1">
+          {[
+            {
+              id: 1,
+              name: "Cashmere Sweater",
+              price: "$189.00",
+              image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27"
+            },
+            {
+              id: 2,
+              name: "Linen Shirt Dress",
+              price: "$145.00",
+              image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8"
+            },
+            {
+              id: 3,
+              name: "Leather Crossbody Bag",
+              price: "$210.00",
+              image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7"
+            }
+          ].map(item => (
+            <div key={item.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
+              <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
+                <img 
+                  src={item.image} 
+                  alt={item.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-sm">{item.name}</p>
+                <p className="text-sm text-gray-500">{item.price}</p>
+              </div>
+              <div className="flex gap-2">
+                <button className="text-gray-500 hover:text-black">
+                  <ShoppingCart className="h-4 w-4" />
+                </button>
+                <button className="text-gray-500 hover:text-red-500">
+                  <Heart className="h-4 w-4 fill-current" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link 
+            to="/wishlist"
+            className="w-full justify-center bg-black text-white py-2 text-sm font-medium hover:bg-black/90 transition-colors rounded-sm"
+          >
+            View All Wishlist Items
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -120,7 +200,7 @@ export function CartMenu() {
   const handleCheckout = () => {
     toast({
       title: "Checkout initiated",
-      description: "This would redirect to checkout in a real implementation.",
+      description: "This would redirect to checkout in a real implementation."
     });
   };
   

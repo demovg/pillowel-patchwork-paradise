@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { SearchMenu, UserMenu, CartMenu } from './NavMenu';
+import { SearchMenu, UserMenu, CartMenu, WishlistMenu } from './NavMenu';
 
 const navLinks = [
   { name: 'Home', path: '/' },
@@ -65,6 +65,7 @@ const Navbar = () => {
         {/* Desktop Icons */}
         <div className="hidden md:flex items-center space-x-6">
           <SearchMenu />
+          <WishlistMenu />
           <UserMenu />
           <CartMenu />
         </div>
@@ -103,6 +104,9 @@ const Navbar = () => {
           <div className="pt-6 flex flex-col space-y-8">
             <Link to="/account" className="text-2xl font-medium text-pillowel-800" onClick={() => setIsMenuOpen(false)}>
               Account
+            </Link>
+            <Link to="/wishlist" className="text-2xl font-medium text-pillowel-800" onClick={() => setIsMenuOpen(false)}>
+              Wishlist
             </Link>
             <Link to="/search" className="text-2xl font-medium text-pillowel-800" onClick={() => setIsMenuOpen(false)}>
               Search
