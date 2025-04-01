@@ -1,13 +1,14 @@
 
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ChevronDown, Minus, Plus, ShoppingBag, Heart } from 'lucide-react';
+import { ChevronDown, Minus, Plus, ShoppingBag, Heart, Star } from 'lucide-react';
 import { useShop } from '@/contexts/ShopContext';
+import ProductReviews from '@/components/product/ProductReviews';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,6 +54,8 @@ const ProductDetail = () => {
       'Classic crew neck design',
       'Available in sizes XS-XXL'
     ],
+    rating: product.rating || 4.5,
+    reviewCount: product.reviewCount || 12
   };
   
   const incrementQuantity = () => setQuantity(prev => prev + 1);
@@ -69,14 +72,41 @@ const ProductDetail = () => {
     }
     
     addToCart(product, quantity);
+    
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} has been added to your cart.`,
+    });
   };
   
   const handleLike = () => {
     if (productLiked) {
       removeFromWishlist(Number(product.id));
+      toast({
+        title: "Removed from Wishlist",
+        description: `${product.name} has been removed from your wishlist.`,
+      });
     } else {
       addToWishlist(product);
+      toast({
+        title: "Added to Wishlist",
+        description: `${product.name} has been added to your wishlist.`,
+      });
     }
+  };
+  
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      toast({
+        title: "Please select a size",
+        description: "You must select a size before proceeding to checkout.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    addToCart(product, quantity);
+    window.location.href = '/checkout';
   };
   
   return (
@@ -84,6 +114,17 @@ const ProductDetail = () => {
       <Navbar />
       <main className="flex-grow pt-24 pb-16">
         <div className="container mx-auto px-4">
+          {/* Breadcrumbs */}
+          <div className="text-sm text-gray-500 mb-8">
+            <Link to="/" className="hover:text-black">Home</Link>
+            <span className="mx-2">/</span>
+            <Link to="/shop" className="hover:text-black">Shop</Link>
+            <span className="mx-2">/</span>
+            <Link to={`/shop?category=${product.category}`} className="hover:text-black">{product.category}</Link>
+            <span className="mx-2">/</span>
+            <span className="text-black">{product.name}</span>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {/* Product Images */}
             <div className="space-y-4">
@@ -99,7 +140,9 @@ const ProductDetail = () => {
                 {productDetails.gallery.map((image, index) => (
                   <button 
                     key={index}
-                    className="aspect-square bg-gray-100 rounded-sm overflow-hidden"
+                    className={`aspect-square bg-gray-100 rounded-sm overflow-hidden ${
+                      mainImage === image ? 'ring-2 ring-black' : ''
+                    }`}
                     onClick={() => setMainImage(image)}
                   >
                     <img 
@@ -119,6 +162,22 @@ const ProductDetail = () => {
                   {product.category}
                 </p>
                 <h1 className="text-3xl font-medium">{product.name}</h1>
+                
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        size={16}
+                        className={star <= Math.round(productDetails.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    ({productDetails.reviewCount} reviews)
+                  </span>
+                </div>
+                
                 <p className="text-xl font-medium mt-2">${product.price.toFixed(2)}</p>
               </div>
               
@@ -214,6 +273,15 @@ const ProductDetail = () => {
                 </Button>
               </div>
               
+              {/* Buy Now Button */}
+              <Button 
+                onClick={handleBuyNow}
+                variant="outline"
+                className="w-full h-12"
+              >
+                Buy Now
+              </Button>
+              
               {/* Product Information Tabs */}
               <Tabs defaultValue="description" className="mt-8">
                 <TabsList className="grid grid-cols-3 mb-6 border-b rounded-none bg-transparent h-auto">
@@ -256,6 +324,11 @@ const ProductDetail = () => {
                 </TabsContent>
               </Tabs>
             </div>
+          </div>
+          
+          {/* Reviews Section */}
+          <div className="mt-16">
+            <ProductReviews productId={id || ''} />
           </div>
         </div>
       </main>

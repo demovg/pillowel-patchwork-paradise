@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Trash2, Plus, Minus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useShop } from "@/contexts/ShopContext";
 import Navbar from '@/components/layout/Navbar';
@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer';
 
 const Cart = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { cartItems, removeFromCart, updateCartQuantity } = useShop();
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -16,10 +17,7 @@ const Cart = () => {
   const total = subtotal + shipping;
   
   const handleCheckout = () => {
-    toast({
-      title: "Checkout initiated",
-      description: "This would redirect to checkout in a real implementation."
-    });
+    navigate('/checkout');
   };
 
   return (
@@ -44,15 +42,19 @@ const Cart = () => {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-4 border-b pb-6">
                     <div className="w-24 h-24 bg-gray-100 flex-shrink-0 rounded overflow-hidden">
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover"
-                      />
+                      <Link to={`/product/${item.id}`}>
+                        <img 
+                          src={item.image} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      </Link>
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between">
-                        <h3 className="font-medium">{item.name}</h3>
+                        <Link to={`/product/${item.id}`}>
+                          <h3 className="font-medium hover:underline">{item.name}</h3>
+                        </Link>
                         <button 
                           onClick={() => removeFromCart(item.id)}
                           className="text-gray-400 hover:text-gray-600"
@@ -65,6 +67,7 @@ const Cart = () => {
                         <button 
                           onClick={() => updateCartQuantity(item.id, -1)}
                           className="p-1 border rounded-l"
+                          disabled={item.quantity <= 1}
                         >
                           <Minus className="h-4 w-4" />
                         </button>
@@ -84,6 +87,13 @@ const Cart = () => {
                     </div>
                   </div>
                 ))}
+                
+                <div className="pt-4">
+                  <Link to="/shop" className="text-sm text-gray-600 hover:text-black flex items-center">
+                    <ArrowRight className="h-4 w-4 mr-1 rotate-180" />
+                    Continue Shopping
+                  </Link>
+                </div>
               </div>
               
               <div className="lg:col-span-1">

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/ui/ProductCard';
@@ -7,7 +7,9 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Filter } from 'lucide-react';
 import SortMenu from '@/components/shop/SortMenu';
+import SearchBar from '@/components/shop/SearchBar';
 import { useShop } from '@/contexts/ShopContext';
+import { Button } from '@/components/ui/button';
 
 const categories = [
   "All",
@@ -26,37 +28,58 @@ const Shop = () => {
   const [showNewOnly, setShowNewOnly] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [sortOption, setSortOption] = useState("Newest");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState(products);
 
-  // Filter products based on selected filters
-  const filteredProducts = products
-    .filter(product => product.active !== false) // Only show active products
-    .filter((product) => {
-      const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-      const matchesPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
-      const matchesNewFilter = showNewOnly ? (product as any).isNew : true;
-      
-      return matchesCategory && matchesPriceRange && matchesNewFilter;
+  // Apply filters and search when relevant state changes
+  useEffect(() => {
+    let result = products
+      .filter(product => product.active !== false) // Only show active products
+      .filter((product) => {
+        const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+        const matchesPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
+        const matchesNewFilter = showNewOnly ? (product as any).isNew : true;
+        const matchesSearch = searchTerm.trim() === '' || 
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
+        
+        return matchesCategory && matchesPriceRange && matchesNewFilter && matchesSearch;
+      });
+
+    // Sort products based on selected option
+    result.sort((a, b) => {
+      switch (sortOption) {
+        case "Price: Low to High":
+          return a.price - b.price;
+        case "Price: High to Low":
+          return b.price - a.price;
+        case "Popularity":
+          // For demo purposes, just random sorting
+          return 0.5 - Math.random();
+        case "Newest":
+        default:
+          // For demo purposes, just use the isNew property or id
+          if ((a as any).isNew !== undefined && (b as any).isNew !== undefined) {
+            return (b as any).isNew === (a as any).isNew ? 0 : (b as any).isNew ? 1 : -1;
+          }
+          return Number(b.id) - Number(a.id);
+      }
     });
 
-  // Sort products based on selected option
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortOption) {
-      case "Price: Low to High":
-        return a.price - b.price;
-      case "Price: High to Low":
-        return b.price - a.price;
-      case "Popularity":
-        // For demo purposes, just random sorting
-        return 0.5 - Math.random();
-      case "Newest":
-      default:
-        // For demo purposes, just use the isNew property or id
-        if ((a as any).isNew !== undefined && (b as any).isNew !== undefined) {
-          return (b as any).isNew === (a as any).isNew ? 0 : (b as any).isNew ? 1 : -1;
-        }
-        return Number(b.id) - Number(a.id);
-    }
-  });
+    setFilteredProducts(result);
+  }, [products, selectedCategory, priceRange, showNewOnly, sortOption, searchTerm]);
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+  };
+
+  const clearFilters = () => {
+    setSelectedCategory("All");
+    setPriceRange([0, 250]);
+    setShowNewOnly(false);
+    setSearchTerm('');
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -64,6 +87,11 @@ const Shop = () => {
       <main className="flex-grow pt-24 pb-16">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-semibold mb-6">Shop</h1>
+          
+          {/* Search bar - visible on all devices */}
+          <div className="mb-8">
+            <SearchBar onSearch={handleSearch} />
+          </div>
           
           {/* Mobile filter button */}
           <div className="md:hidden flex justify-between items-center mb-6">
@@ -133,8 +161,16 @@ const Shop = () => {
                   </label>
                 </div>
                 
+                <Button 
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="w-full mt-4"
+                >
+                  Clear Filters
+                </Button>
+                
                 <button 
-                  className="md:hidden w-full py-2.5 bg-black text-white rounded-md text-sm font-medium"
+                  className="md:hidden w-full py-2.5 bg-black text-white rounded-md text-sm font-medium mt-4"
                   onClick={() => setShowMobileFilters(false)}
                 >
                   Apply Filters
@@ -149,9 +185,9 @@ const Shop = () => {
                 <SortMenu onSort={setSortOption} />
               </div>
               
-              {sortedProducts.length > 0 ? (
+              {filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {sortedProducts.map((product) => (
+                  {filteredProducts.map((product) => (
                     <ProductCard
                       key={product.id}
                       id={product.id.toString()}
@@ -167,11 +203,7 @@ const Shop = () => {
                 <div className="py-16 text-center">
                   <p className="text-pillowel-600">No products match your filters.</p>
                   <button 
-                    onClick={() => {
-                      setSelectedCategory("All");
-                      setPriceRange([0, 250]);
-                      setShowNewOnly(false);
-                    }}
+                    onClick={clearFilters}
                     className="mt-4 underline text-sm"
                   >
                     Clear all filters
