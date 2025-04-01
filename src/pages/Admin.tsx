@@ -11,6 +11,7 @@ import { AuthContext } from '@/App';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload } from 'lucide-react';
+import { useShop } from '@/contexts/ShopContext';
 import {
   Table,
   TableBody,
@@ -25,6 +26,7 @@ const Admin = () => {
   const { isAdmin, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { products, addProduct, editProduct } = useShop();
   
   // Product form state
   const [productForm, setProductForm] = useState({
@@ -34,16 +36,9 @@ const Admin = () => {
     category: '',
     inventory: '',
     image: null as File | null,
-    imagePreview: ''
+    imagePreview: '',
+    imageUrl: ''
   });
-
-  // Mock product data for the products table
-  const [products] = useState([
-    { id: 1, name: 'Organic Cotton Sweater', category: 'clothing', price: 120, inventory: 25, active: true },
-    { id: 2, name: 'Merino Wool Cardigan', category: 'clothing', price: 145, inventory: 18, active: true },
-    { id: 3, name: 'Linen Tote Bag', category: 'accessories', price: 45, inventory: 32, active: true },
-    { id: 4, name: 'Ceramic Vase', category: 'home', price: 65, inventory: 12, active: false },
-  ]);
   
   // Function to handle logout
   const handleLogout = () => {
@@ -100,11 +95,20 @@ const Admin = () => {
       return;
     }
     
-    // Here you would typically send the data to your backend
-    // For this demo, we'll just show a toast
-    toast({
-      title: "Product added successfully",
-      description: `${productForm.name} has been added to the inventory.`
+    // For a real app, you would upload the image to a storage service
+    // For this demo, we'll just use the preview URL or a placeholder
+    const imageUrl = productForm.imagePreview || productForm.imageUrl || 'https://placehold.co/600x400?text=Product+Image';
+    
+    // Add the product
+    addProduct({
+      id: '', // Will be assigned by the context
+      name: productForm.name,
+      description: productForm.description,
+      price: parseFloat(productForm.price),
+      category: productForm.category,
+      inventory: parseInt(productForm.inventory),
+      image: imageUrl,
+      active: true
     });
     
     // Reset the form
@@ -116,8 +120,20 @@ const Admin = () => {
       category: '',
       inventory: '',
       image: null,
-      imagePreview: ''
+      imagePreview: '',
+      imageUrl: ''
     });
+  };
+  
+  // Function to toggle product status
+  const toggleProductStatus = (id: string | number, currentStatus: boolean) => {
+    const product = products.find(p => p.id === id);
+    if (product) {
+      editProduct({
+        ...product,
+        active: !currentStatus
+      });
+    }
   };
   
   // Redirect to login if not admin - fix the conditional rendering
@@ -196,9 +212,12 @@ const Admin = () => {
                           required
                         >
                           <option value="">Select a category</option>
-                          <option value="clothing">Clothing</option>
-                          <option value="accessories">Accessories</option>
-                          <option value="home">Home</option>
+                          <option value="Knitwear">Knitwear</option>
+                          <option value="Shirts">Shirts</option>
+                          <option value="T-Shirts">T-Shirts</option>
+                          <option value="Pants">Pants</option>
+                          <option value="Outerwear">Outerwear</option>
+                          <option value="Accessories">Accessories</option>
                         </select>
                       </div>
                       
@@ -223,6 +242,17 @@ const Admin = () => {
                           value={productForm.description} 
                           onChange={handleInputChange} 
                           rows={4} 
+                        />
+                      </div>
+                      
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="imageUrl">Image URL</Label>
+                        <Input 
+                          id="imageUrl" 
+                          name="imageUrl" 
+                          value={productForm.imageUrl} 
+                          onChange={handleInputChange} 
+                          placeholder="https://example.com/image.jpg" 
                         />
                       </div>
                       
@@ -287,16 +317,16 @@ const Admin = () => {
                       <p className="text-sm text-gray-500">Categories</p>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>Clothing</span>
-                          <span className="font-medium">{products.filter(p => p.category === 'clothing').length}</span>
+                          <span>Knitwear</span>
+                          <span className="font-medium">{products.filter(p => p.category === 'Knitwear').length}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Shirts</span>
+                          <span className="font-medium">{products.filter(p => p.category === 'Shirts').length}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Accessories</span>
-                          <span className="font-medium">{products.filter(p => p.category === 'accessories').length}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Home</span>
-                          <span className="font-medium">{products.filter(p => p.category === 'home').length}</span>
+                          <span className="font-medium">{products.filter(p => p.category === 'Accessories').length}</span>
                         </div>
                       </div>
                     </div>
@@ -339,14 +369,24 @@ const Admin = () => {
                         <TableCell>{product.inventory}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Switch id={`status-${product.id}`} defaultChecked={product.active} />
+                            <Switch 
+                              id={`status-${product.id}`} 
+                              checked={product.active !== false} 
+                              onCheckedChange={() => toggleProductStatus(product.id, product.active !== false)}
+                            />
                             <Label htmlFor={`status-${product.id}`}>
-                              {product.active ? 'Active' : 'Inactive'}
+                              {product.active !== false ? 'Active' : 'Inactive'}
                             </Label>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="outline" size="sm">Edit</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/admin/edit-product/${product.id}`)}
+                          >
+                            Edit
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -386,7 +426,13 @@ const Admin = () => {
                       </TableCell>
                       <TableCell>$265.00</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">View</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate('/admin/order/1001')}
+                        >
+                          View
+                        </Button>
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -400,7 +446,13 @@ const Admin = () => {
                       </TableCell>
                       <TableCell>$120.00</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">View</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate('/admin/order/1002')}
+                        >
+                          View
+                        </Button>
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -435,7 +487,13 @@ const Admin = () => {
                       <TableCell>Feb 10, 2025</TableCell>
                       <TableCell>3</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">View</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate('/admin/customer/1')}
+                        >
+                          View
+                        </Button>
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -445,7 +503,13 @@ const Admin = () => {
                       <TableCell>Jan 25, 2025</TableCell>
                       <TableCell>1</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">View</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate('/admin/customer/2')}
+                        >
+                          View
+                        </Button>
                       </TableCell>
                     </TableRow>
                   </TableBody>

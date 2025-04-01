@@ -1,222 +1,173 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Package, UserCircle, Settings, CreditCard, Heart, ShoppingBag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState, useContext } from 'react';
+import { AuthContext } from '@/App';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const Account = () => {
+  const { isLoggedIn, user, userLogin, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.email || !formData.password) {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: "Please enter both email and password."
+      });
+      return;
+    }
+    
+    const success = userLogin(formData.email, formData.password);
+    
+    if (success) {
+      toast({
+        title: "Login successful",
+        description: "You have been logged in successfully."
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: "Invalid email or password. Please try again."
+      });
+    }
+  };
+  
+  // If user is logged in, show account info
+  if (isLoggedIn && user) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow pt-32 pb-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <h1 className="text-3xl font-semibold mb-8">My Account</h1>
+              
+              <div className="bg-white shadow rounded-lg overflow-hidden">
+                <div className="p-6 border-b">
+                  <h2 className="text-xl font-medium">Account Information</h2>
+                </div>
+                
+                <div className="p-6 space-y-4">
+                  <div>
+                    <p className="text-gray-500 text-sm">Name</p>
+                    <p className="font-medium">{user.name}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-500 text-sm">Email</p>
+                    <p className="font-medium">{user.email}</p>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/orders')}
+                      className="mr-4"
+                    >
+                      View Orders
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/settings')}
+                      className="mr-4"
+                    >
+                      Account Settings
+                    </Button>
+                    
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        logout();
+                        toast({
+                          title: "Logged out",
+                          description: "You have been logged out successfully."
+                        });
+                      }}
+                    >
+                      Log Out
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
+  // If user is not logged in, show login form
   return (
-    <div className="container mx-auto px-4 py-32">
-      <h1 className="text-3xl font-semibold mb-8">My Account</h1>
-      
-      <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="addresses">Addresses</TabsTrigger>
-          <TabsTrigger value="payment">Payment</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="profile" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>
-                Update your personal details here.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium">First Name</label>
-                  <Input id="firstName" defaultValue="Alex" />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium">Last Name</label>
-                  <Input id="lastName" defaultValue="Smith" />
-                </div>
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-grow pt-32 pb-16">
+        <div className="container mx-auto px-4 max-w-md">
+          <h1 className="text-3xl font-semibold mb-8 text-center">Sign In</h1>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Button variant="link" className="p-0 h-auto text-sm">
+                  Forgot Password?
+                </Button>
               </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">Email</label>
-                <Input id="email" type="email" defaultValue="alex.smith@example.com" />
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium">Phone</label>
-                <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
-              </div>
-              
-              <Button>Save Changes</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="orders" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order History</CardTitle>
-              <CardDescription>
-                View and track your recent orders.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="border rounded-md p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">Order #86452</p>
-                      <p className="text-sm text-gray-500">Placed on May 15, 2023</p>
-                    </div>
-                    <Button variant="outline" size="sm">View Order</Button>
-                  </div>
-                  <div className="mt-4 flex items-center">
-                    <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center mr-4">
-                      <Package className="h-6 w-6 text-gray-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm">2 items - $230.00</p>
-                      <p className="text-xs text-green-600">Delivered on May 20, 2023</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="border rounded-md p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">Order #86123</p>
-                      <p className="text-sm text-gray-500">Placed on April 2, 2023</p>
-                    </div>
-                    <Button variant="outline" size="sm">View Order</Button>
-                  </div>
-                  <div className="mt-4 flex items-center">
-                    <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center mr-4">
-                      <Package className="h-6 w-6 text-gray-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm">1 item - $145.00</p>
-                      <p className="text-xs text-green-600">Delivered on April 8, 2023</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <Link to="/orders" className="text-sm text-blue-600 hover:underline block text-center">
-                  View All Orders
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="addresses" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Saved Addresses</CardTitle>
-              <CardDescription>
-                Manage your shipping and billing addresses.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="border rounded-md p-4">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="font-medium">Shipping Address</p>
-                      <p className="text-sm text-gray-500">Default</p>
-                    </div>
-                    <Button variant="ghost" size="sm">Edit</Button>
-                  </div>
-                  <div className="text-sm">
-                    <p>Alex Smith</p>
-                    <p>123 Main Street</p>
-                    <p>Apt 4B</p>
-                    <p>San Francisco, CA 94107</p>
-                    <p>United States</p>
-                  </div>
-                </div>
-                
-                <div className="border rounded-md p-4 border-dashed flex items-center justify-center">
-                  <Button variant="outline">+ Add New Address</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="payment" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
-              <CardDescription>
-                Manage your saved payment methods.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="border rounded-md p-4">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="font-medium">Credit Card</p>
-                      <p className="text-sm text-gray-500">Default</p>
-                    </div>
-                    <Button variant="ghost" size="sm">Edit</Button>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-12 h-8 bg-blue-100 rounded mr-4"></div>
-                    <div className="text-sm">
-                      <p>•••• •••• •••• 4242</p>
-                      <p className="text-gray-500">Expires 12/25</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="border rounded-md p-4 border-dashed flex items-center justify-center">
-                  <Button variant="outline">+ Add Payment Method</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="settings" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>
-                Manage your account preferences.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-md">
-                <div>
-                  <p className="font-medium">Email Notifications</p>
-                  <p className="text-sm text-gray-500">Receive email updates about your orders and account.</p>
-                </div>
-                <Button variant="outline">Manage</Button>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 border rounded-md">
-                <div>
-                  <p className="font-medium">Password</p>
-                  <p className="text-sm text-gray-500">Change your account password.</p>
-                </div>
-                <Button variant="outline">Update</Button>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 border rounded-md">
-                <div>
-                  <p className="font-medium">Delete Account</p>
-                  <p className="text-sm text-gray-500">Permanently delete your account and all data.</p>
-                </div>
-                <Button variant="destructive">Delete</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+            </div>
+            
+            <Button type="submit" className="w-full">
+              Sign In
+            </Button>
+          </form>
+          
+          <p className="text-center mt-6">
+            Don't have an account?{' '}
+            <Button variant="link" className="p-0" onClick={() => navigate('/sign-up')}>
+              Create one
+            </Button>
+          </p>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 };

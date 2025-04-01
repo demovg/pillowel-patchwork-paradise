@@ -7,68 +7,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { ChevronDown, Minus, Plus, ShoppingBag, Heart } from 'lucide-react';
-
-// Sample product data - in a real app, this would come from an API
-const products = [
-  {
-    id: '1',
-    name: 'Organic Cotton Sweater',
-    price: 120,
-    image: 'https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=3327&auto=format&fit=crop',
-    gallery: [
-      'https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=3327&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=3464&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=3276&auto=format&fit=crop',
-    ],
-    description: 'Our organic cotton sweater combines comfort with style. Made from 100% GOTS-certified organic cotton, this piece features a classic design with a modern fit that looks great dressed up or down.',
-    details: [
-      'Made from 100% GOTS-certified organic cotton',
-      'Medium weight, perfect for transitional seasons',
-      'Ribbed cuffs and hem',
-      'Classic crew neck design',
-      'Available in sizes XS-XXL'
-    ],
-    category: 'Knitwear',
-    isNew: true,
-    colors: ['Cream', 'Navy', 'Black'],
-    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-  },
-  {
-    id: '2',
-    name: 'Merino Wool Cardigan',
-    price: 145,
-    image: 'https://images.unsplash.com/photo-1564859228273-274232fdb516?q=80&w=3387&auto=format&fit=crop',
-    gallery: [
-      'https://images.unsplash.com/photo-1564859228273-274232fdb516?q=80&w=3387&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1596785233590-2a96a8f67ffc?q=80&w=3276&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1515664069236-68a74c369fe0?q=80&w=3270&auto=format&fit=crop',
-    ],
-    description: 'Our premium Merino wool cardigan offers exceptional warmth and softness. Featuring a timeless design with practical button closure, this versatile piece works well for both casual and formal occasions.',
-    details: [
-      'Made from 100% non-mulesed Merino wool',
-      'Breathable and temperature-regulating',
-      'Button-up front closure',
-      'Two practical front pockets',
-      'Available in sizes XS-XXL'
-    ],
-    category: 'Knitwear',
-    isNew: true,
-    colors: ['Charcoal', 'Navy', 'Burgundy'],
-    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-  },
-  // Add more products with similar structure
-];
+import { useShop } from '@/contexts/ShopContext';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  const { getProduct, addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useShop();
   
-  const product = products.find(p => p.id === id);
+  const product = getProduct(id || '');
   
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(product?.colors[0] || '');
+  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || '');
   const [selectedSize, setSelectedSize] = useState('');
-  const [isLiked, setIsLiked] = useState(false);
+  const productLiked = isInWishlist(id || '');
   const [mainImage, setMainImage] = useState(product?.image || '');
   
   if (!product) {
@@ -86,6 +37,24 @@ const ProductDetail = () => {
     );
   }
   
+  // Sample product details for the demo (would normally come from the API)
+  const productDetails = {
+    colors: product.colors || ['Cream', 'Navy', 'Black'],
+    sizes: product.sizes || ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    gallery: product.gallery || [
+      product.image,
+      'https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=3464&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=3276&auto=format&fit=crop',
+    ],
+    details: product.details || [
+      'Made from 100% GOTS-certified organic cotton',
+      'Medium weight, perfect for transitional seasons',
+      'Ribbed cuffs and hem',
+      'Classic crew neck design',
+      'Available in sizes XS-XXL'
+    ],
+  };
+  
   const incrementQuantity = () => setQuantity(prev => prev + 1);
   const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
   
@@ -99,19 +68,15 @@ const ProductDetail = () => {
       return;
     }
     
-    toast({
-      title: "Added to cart",
-      description: `${product.name} (${selectedSize}, ${selectedColor}) has been added to your cart.`,
-    });
+    addToCart(product, quantity);
   };
   
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    
-    toast({
-      title: isLiked ? "Removed from wishlist" : "Added to wishlist",
-      description: `${product.name} has been ${isLiked ? "removed from" : "added to"} your wishlist.`,
-    });
+    if (productLiked) {
+      removeFromWishlist(Number(product.id));
+    } else {
+      addToWishlist(product);
+    }
   };
   
   return (
@@ -131,7 +96,7 @@ const ProductDetail = () => {
               </div>
               
               <div className="grid grid-cols-3 gap-4">
-                {product.gallery.map((image, index) => (
+                {productDetails.gallery.map((image, index) => (
                   <button 
                     key={index}
                     className="aspect-square bg-gray-100 rounded-sm overflow-hidden"
@@ -161,7 +126,7 @@ const ProductDetail = () => {
               <div>
                 <p className="font-medium mb-3">Color: <span className="font-normal">{selectedColor}</span></p>
                 <div className="flex gap-3">
-                  {product.colors.map((color) => (
+                  {productDetails.colors.map((color) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
@@ -190,7 +155,7 @@ const ProductDetail = () => {
                   <button className="text-sm underline">Size Guide</button>
                 </div>
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                  {product.sizes.map((size) => (
+                  {productDetails.sizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
@@ -244,7 +209,7 @@ const ProductDetail = () => {
                 >
                   <Heart 
                     size={18} 
-                    className={isLiked ? "text-red-500 fill-red-500" : ""} 
+                    className={productLiked ? "text-red-500 fill-red-500" : ""} 
                   />
                 </Button>
               </div>
@@ -276,7 +241,7 @@ const ProductDetail = () => {
                 </TabsContent>
                 <TabsContent value="details">
                   <ul className="list-disc pl-5 space-y-2 text-pillowel-600">
-                    {product.details.map((detail, index) => (
+                    {productDetails.details.map((detail, index) => (
                       <li key={index}>{detail}</li>
                     ))}
                   </ul>

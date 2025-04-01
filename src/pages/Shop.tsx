@@ -7,74 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Filter } from 'lucide-react';
 import SortMenu from '@/components/shop/SortMenu';
-
-// Sample product data - in a real app, this would come from an API
-const products = [
-  {
-    id: '1',
-    name: 'Organic Cotton Sweater',
-    price: 120,
-    image: 'https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=3327&auto=format&fit=crop',
-    category: 'Knitwear',
-    isNew: true
-  },
-  {
-    id: '2',
-    name: 'Merino Wool Cardigan',
-    price: 145,
-    image: 'https://images.unsplash.com/photo-1564859228273-274232fdb516?q=80&w=3387&auto=format&fit=crop',
-    category: 'Knitwear',
-    isNew: true
-  },
-  {
-    id: '3',
-    name: 'Linen Blend Shirt',
-    price: 85,
-    image: 'https://images.unsplash.com/photo-1516762689617-e1cffcef479d?q=80&w=3311&auto=format&fit=crop',
-    category: 'Shirts',
-    isNew: true
-  },
-  {
-    id: '4',
-    name: 'Silk Scarf',
-    price: 65,
-    image: 'https://images.unsplash.com/photo-1599391398502-967381c4795a?q=80&w=3387&auto=format&fit=crop',
-    category: 'Accessories',
-    isNew: true
-  },
-  {
-    id: '5',
-    name: 'Wool Blend Coat',
-    price: 230,
-    image: 'https://images.unsplash.com/photo-1520975661595-6453be3f7070?q=80&w=3387&auto=format&fit=crop',
-    category: 'Outerwear',
-    isNew: false
-  },
-  {
-    id: '6',
-    name: 'Cotton T-Shirt',
-    price: 40,
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=3280&auto=format&fit=crop',
-    category: 'T-Shirts',
-    isNew: false
-  },
-  {
-    id: '7',
-    name: 'Leather Handbag',
-    price: 190,
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=3435&auto=format&fit=crop',
-    category: 'Accessories',
-    isNew: false
-  },
-  {
-    id: '8',
-    name: 'Denim Jeans',
-    price: 95,
-    image: 'https://images.unsplash.com/photo-1565084888279-aca607ecce0c?q=80&w=3270&auto=format&fit=crop',
-    category: 'Pants',
-    isNew: false
-  }
-];
+import { useShop } from '@/contexts/ShopContext';
 
 const categories = [
   "All",
@@ -87,6 +20,7 @@ const categories = [
 ];
 
 const Shop = () => {
+  const { products } = useShop();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState([0, 250]);
   const [showNewOnly, setShowNewOnly] = useState(false);
@@ -94,13 +28,15 @@ const Shop = () => {
   const [sortOption, setSortOption] = useState("Newest");
 
   // Filter products based on selected filters
-  const filteredProducts = products.filter((product) => {
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-    const matchesPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
-    const matchesNewFilter = showNewOnly ? product.isNew : true;
-    
-    return matchesCategory && matchesPriceRange && matchesNewFilter;
-  });
+  const filteredProducts = products
+    .filter(product => product.active !== false) // Only show active products
+    .filter((product) => {
+      const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+      const matchesPriceRange = product.price >= priceRange[0] && product.price <= priceRange[1];
+      const matchesNewFilter = showNewOnly ? (product as any).isNew : true;
+      
+      return matchesCategory && matchesPriceRange && matchesNewFilter;
+    });
 
   // Sort products based on selected option
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -114,8 +50,11 @@ const Shop = () => {
         return 0.5 - Math.random();
       case "Newest":
       default:
-        // For demo purposes, just use the isNew property
-        return b.isNew === a.isNew ? 0 : b.isNew ? 1 : -1;
+        // For demo purposes, just use the isNew property or id
+        if ((a as any).isNew !== undefined && (b as any).isNew !== undefined) {
+          return (b as any).isNew === (a as any).isNew ? 0 : (b as any).isNew ? 1 : -1;
+        }
+        return Number(b.id) - Number(a.id);
     }
   });
 
@@ -215,12 +154,12 @@ const Shop = () => {
                   {sortedProducts.map((product) => (
                     <ProductCard
                       key={product.id}
-                      id={product.id}
+                      id={product.id.toString()}
                       name={product.name}
                       price={product.price}
                       image={product.image}
                       category={product.category}
-                      isNew={product.isNew}
+                      isNew={(product as any).isNew}
                     />
                   ))}
                 </div>
