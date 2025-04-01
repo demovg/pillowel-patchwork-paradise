@@ -1,4 +1,3 @@
-
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -9,7 +8,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
 import { Link } from "react-router-dom"
-import { Heart, Search, ShoppingBag, User, LogOut, UserCircle, Settings, Package, ShoppingCart } from "lucide-react"
+import { Heart, Search, ShoppingBag, User, LogOut, UserCircle, Settings, Package, ShoppingCart, X } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
@@ -22,6 +21,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
 export function SearchMenu() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,11 +32,9 @@ export function SearchMenu() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      // Add to recent searches if not already there
       if (!recentSearches.includes(searchTerm)) {
         setRecentSearches(prev => [searchTerm, ...prev.slice(0, 2)]);
       }
-      // Redirect would happen here in a real implementation
       window.location.href = `/shop?search=${encodeURIComponent(searchTerm)}`;
     }
   };
@@ -184,7 +182,7 @@ export function WishlistMenu() {
         <DropdownMenuItem asChild>
           <Link 
             to="/wishlist"
-            className="w-full justify-center bg-black text-white py-2 text-sm font-medium hover:bg-black/90 transition-colors rounded-sm"
+            className="w-full justify-center bg-black text-white py-2 text-sm font-medium hover:bg-black hover:text-white transition-colors rounded-sm"
           >
             View All Wishlist Items
           </Link>
@@ -196,6 +194,22 @@ export function WishlistMenu() {
 
 export function CartMenu() {
   const { toast } = useToast();
+  const [cartItems, setCartItems] = useState([
+    {
+      id: 1,
+      name: "Organic Cotton Sweater",
+      price: 120.0,
+      quantity: 1,
+      image: "https://images.unsplash.com/photo-1562157873-818bc0726f68"
+    },
+    {
+      id: 2,
+      name: "Merino Wool Cardigan",
+      price: 145.0,
+      quantity: 1,
+      image: "https://images.unsplash.com/photo-1564859228273-274232fdb516"
+    }
+  ]);
   
   const handleCheckout = () => {
     toast({
@@ -203,54 +217,85 @@ export function CartMenu() {
       description: "This would redirect to checkout in a real implementation."
     });
   };
+
+  const removeItem = (id: number) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
+    toast({
+      title: "Item removed",
+      description: "Item has been removed from your cart."
+    });
+  };
+  
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger className="h-10 bg-transparent p-0 hover:bg-transparent focus:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent">
-            <ShoppingBag className="h-5 w-5" />
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="absolute right-0 p-4 bg-white shadow-lg rounded-md border w-[300px] z-[100]">
-            <div className="space-y-4">
-              <h4 className="font-medium">Your Cart (2)</h4>
-              
-              <div className="space-y-3">
-                <div className="flex gap-3 pb-3 border-b">
-                  <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center hover:text-black/70 relative">
+          <ShoppingBag className="h-5 w-5" />
+          {cartItems.length > 0 && (
+            <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+              {cartItems.length}
+            </span>
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[350px] p-4">
+        <DropdownMenuLabel className="text-lg font-medium pb-2">Your Cart ({cartItems.length})</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        
+        {cartItems.length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-gray-500 mb-4">Your cart is empty</p>
+            <Link to="/shop">
+              <Button variant="outline" size="sm">Continue Shopping</Button>
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="max-h-[300px] overflow-y-auto py-2 space-y-3">
+              {cartItems.map((item) => (
+                <div key={item.id} className="flex items-start gap-3 pb-3">
+                  <div className="w-20 h-20 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
                     <img 
-                      src="https://images.unsplash.com/photo-1562157873-818bc0726f68" 
-                      alt="Product" 
+                      src={item.image} 
+                      alt={item.name} 
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-sm">Organic Cotton Sweater</p>
-                    <p className="text-sm text-gray-500">1 × $120.00</p>
+                    <div className="flex justify-between">
+                      <p className="font-medium text-sm line-clamp-2">{item.name}</p>
+                      <button 
+                        onClick={() => removeItem(item.id)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-1 bg-gray-100 rounded">
+                          Qty: {item.quantity}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex gap-3 pb-3 border-b">
-                  <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0">
-                    <img 
-                      src="https://images.unsplash.com/photo-1564859228273-274232fdb516" 
-                      alt="Product" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">Merino Wool Cardigan</p>
-                    <p className="text-sm text-gray-500">1 × $145.00</p>
-                  </div>
-                </div>
-              </div>
-              
+              ))}
+            </div>
+            
+            <DropdownMenuSeparator className="my-3" />
+            
+            <div className="space-y-3 pt-2">
               <div className="flex justify-between font-medium">
                 <span>Subtotal:</span>
-                <span>$265.00</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
+              <p className="text-xs text-gray-500">Shipping & taxes calculated at checkout</p>
               
-              <div className="space-y-2">
+              <div className="space-y-2 pt-2">
                 <Link 
                   to="/cart" 
                   className="block text-center border border-black text-black px-4 py-2 text-sm font-medium hover:bg-black hover:text-white transition-colors rounded-sm"
@@ -259,15 +304,15 @@ export function CartMenu() {
                 </Link>
                 <button 
                   onClick={handleCheckout}
-                  className="block w-full bg-black text-white px-4 py-2 text-sm font-medium hover:bg-pillowel-800 transition-colors rounded-sm"
+                  className="block w-full bg-black text-white px-4 py-2 text-sm font-medium hover:bg-black/80 transition-colors rounded-sm"
                 >
                   Checkout
                 </button>
               </div>
             </div>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
