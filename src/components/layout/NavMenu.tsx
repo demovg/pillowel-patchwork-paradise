@@ -1,3 +1,4 @@
+
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -7,7 +8,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Heart, Search, ShoppingBag, User, LogOut, UserCircle, Settings, Package, ShoppingCart, X } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -28,6 +29,7 @@ export function SearchMenu() {
   const [recentSearches, setRecentSearches] = useState([
     "Sweaters", "Cotton", "Accessories"
   ]);
+  const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +37,7 @@ export function SearchMenu() {
       if (!recentSearches.includes(searchTerm)) {
         setRecentSearches(prev => [searchTerm, ...prev.slice(0, 2)]);
       }
-      window.location.href = `/shop?search=${encodeURIComponent(searchTerm)}`;
+      navigate(`/shop?search=${encodeURIComponent(searchTerm)}`);
     }
   };
 
@@ -85,6 +87,12 @@ export function SearchMenu() {
 }
 
 export function UserMenu() {
+  const navigate = useNavigate();
+  
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -95,17 +103,17 @@ export function UserMenu() {
       <DropdownMenuContent align="end" className="w-56 p-2">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/account')}>
           <UserCircle className="h-4 w-4" />
-          <Link to="/account" className="flex-1">Profile</Link>
+          <span className="flex-1">Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/orders')}>
           <Package className="h-4 w-4" />
-          <Link to="/orders" className="flex-1">Orders</Link>
+          <span className="flex-1">Orders</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+        <DropdownMenuItem className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/settings')}>
           <Settings className="h-4 w-4" />
-          <Link to="/settings" className="flex-1">Settings</Link>
+          <span className="flex-1">Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
@@ -113,10 +121,10 @@ export function UserMenu() {
           <span className="flex-1">Logout</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <Link to="/admin/login" className="text-sm text-muted-foreground w-full text-center">
+        <DropdownMenuItem onClick={() => handleNavigation('/admin/login')}>
+          <span className="text-sm text-muted-foreground w-full text-center">
             Admin Access
-          </Link>
+          </span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -124,6 +132,50 @@ export function UserMenu() {
 }
 
 export function WishlistMenu() {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [wishlistItems, setWishlistItems] = useState([
+    {
+      id: 1,
+      name: "Cashmere Sweater",
+      price: "$189.00",
+      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27"
+    },
+    {
+      id: 2,
+      name: "Linen Shirt Dress",
+      price: "$145.00",
+      image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8"
+    },
+    {
+      id: 3,
+      name: "Leather Crossbody Bag",
+      price: "$210.00",
+      image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7"
+    }
+  ]);
+  
+  const removeFromWishlist = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setWishlistItems(prev => prev.filter(item => item.id !== id));
+    toast({
+      title: "Removed from wishlist",
+      description: "Item has been removed from your wishlist."
+    });
+  };
+  
+  const addToCart = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    toast({
+      title: "Added to cart",
+      description: "Item has been added to your cart."
+    });
+  };
+  
+  const viewWishlist = () => {
+    navigate('/wishlist');
+  };
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -132,60 +184,60 @@ export function WishlistMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[300px] p-2">
-        <DropdownMenuLabel>My Wishlist (3)</DropdownMenuLabel>
+        <DropdownMenuLabel>My Wishlist ({wishlistItems.length})</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <div className="max-h-[300px] overflow-y-auto py-1">
-          {[
-            {
-              id: 1,
-              name: "Cashmere Sweater",
-              price: "$189.00",
-              image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27"
-            },
-            {
-              id: 2,
-              name: "Linen Shirt Dress",
-              price: "$145.00",
-              image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8"
-            },
-            {
-              id: 3,
-              name: "Leather Crossbody Bag",
-              price: "$210.00",
-              image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7"
-            }
-          ].map(item => (
-            <div key={item.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
-              <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-sm">{item.name}</p>
-                <p className="text-sm text-gray-500">{item.price}</p>
-              </div>
-              <div className="flex gap-2">
-                <button className="text-gray-500 hover:text-black">
-                  <ShoppingCart className="h-4 w-4" />
-                </button>
-                <button className="text-gray-500 hover:text-red-500">
-                  <Heart className="h-4 w-4 fill-current" />
-                </button>
-              </div>
+          {wishlistItems.length === 0 ? (
+            <div className="py-6 text-center">
+              <p className="text-gray-500 mb-2">Your wishlist is empty</p>
+              <Link to="/shop" className="text-sm text-blue-600 hover:underline">
+                Continue shopping
+              </Link>
             </div>
-          ))}
+          ) : (
+            wishlistItems.map(item => (
+              <div 
+                key={item.id} 
+                className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                onClick={() => navigate(`/product/${item.id}`)}
+              >
+                <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
+                  <img 
+                    src={item.image} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{item.name}</p>
+                  <p className="text-sm text-gray-500">{item.price}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    className="text-gray-500 hover:text-black"
+                    onClick={(e) => addToCart(item.id, e)}
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                  </button>
+                  <button 
+                    className="text-gray-500 hover:text-red-500"
+                    onClick={(e) => removeFromWishlist(item.id, e)}
+                  >
+                    <Heart className="h-4 w-4 fill-current" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link 
-            to="/wishlist"
+          <button 
+            onClick={viewWishlist}
             className="w-full justify-center bg-black text-white py-2 text-sm font-medium hover:bg-black hover:text-white transition-colors rounded-sm"
           >
             View All Wishlist Items
-          </Link>
+          </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -194,6 +246,7 @@ export function WishlistMenu() {
 
 export function CartMenu() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
@@ -226,6 +279,10 @@ export function CartMenu() {
     });
   };
   
+  const viewCart = () => {
+    navigate('/cart');
+  };
+  
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
   return (
@@ -255,7 +312,7 @@ export function CartMenu() {
           <>
             <div className="max-h-[300px] overflow-y-auto py-2 space-y-3">
               {cartItems.map((item) => (
-                <div key={item.id} className="flex items-start gap-3 pb-3">
+                <div key={item.id} className="flex items-start gap-3 pb-3 cursor-pointer" onClick={() => navigate(`/product/${item.id}`)}>
                   <div className="w-20 h-20 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
                     <img 
                       src={item.image} 
@@ -267,7 +324,10 @@ export function CartMenu() {
                     <div className="flex justify-between">
                       <p className="font-medium text-sm line-clamp-2">{item.name}</p>
                       <button 
-                        onClick={() => removeItem(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeItem(item.id);
+                        }}
                         className="text-gray-400 hover:text-gray-600"
                       >
                         <X className="h-4 w-4" />
@@ -296,12 +356,12 @@ export function CartMenu() {
               <p className="text-xs text-gray-500">Shipping & taxes calculated at checkout</p>
               
               <div className="space-y-2 pt-2">
-                <Link 
-                  to="/cart" 
-                  className="block text-center border border-black text-black px-4 py-2 text-sm font-medium hover:bg-black hover:text-white transition-colors rounded-sm"
+                <button 
+                  onClick={viewCart}
+                  className="block w-full text-center border border-black text-black px-4 py-2 text-sm font-medium hover:bg-black hover:text-white transition-colors rounded-sm"
                 >
                   View Cart
-                </Link>
+                </button>
                 <button 
                   onClick={handleCheckout}
                   className="block w-full bg-black text-white px-4 py-2 text-sm font-medium hover:bg-black/80 transition-colors rounded-sm"
