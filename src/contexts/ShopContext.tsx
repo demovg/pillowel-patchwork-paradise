@@ -14,7 +14,7 @@ type CartItem = {
 };
 
 type WishlistItem = {
-  id: number | string;
+  id: string;  // Changed from number | string to just string for consistency
   name: string;
   price: string | number;
   image: string;
@@ -37,6 +37,17 @@ type Product = {
   reviewCount?: number;
 };
 
+// Define a type for the wishlist item in Supabase
+type WishlistItemDB = {
+  id: string;
+  user_id: string | null;
+  product_id: number;
+  product_name: string;
+  product_price: number;
+  product_image: string;
+  created_at: string | null;
+};
+
 type ShopContextType = {
   cartItems: CartItem[];
   wishlistItems: WishlistItem[];
@@ -45,7 +56,7 @@ type ShopContextType = {
   removeFromCart: (id: number) => void;
   updateCartQuantity: (id: number, change: number) => void;
   addToWishlist: (product: any) => void;
-  removeFromWishlist: (id: number | string) => void;
+  removeFromWishlist: (id: string) => void;  // Changed from number | string to just string
   isInWishlist: (id: number | string) => boolean;
   addProduct: (product: Product) => void;
   editProduct: (product: Product) => void;
@@ -160,8 +171,9 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
+      // Use type assertion to tell TypeScript this is valid
       const { data, error } = await supabase
-        .from('wishlist_items')
+        .from('wishlist_items' as any)
         .select('*');
       
       if (error) {
@@ -174,7 +186,10 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (data) {
-        const formattedItems: WishlistItem[] = data.map(item => ({
+        // Use type assertion to work with the returned data
+        const wishlistData = data as unknown as WishlistItemDB[];
+        
+        const formattedItems: WishlistItem[] = wishlistData.map(item => ({
           id: item.id,
           name: item.product_name,
           price: item.product_price,
@@ -264,9 +279,9 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
-      // Add to Supabase
+      // Add to Supabase using type assertion
       const { data, error } = await supabase
-        .from('wishlist_items')
+        .from('wishlist_items' as any)
         .insert([{
           user_id: user.email, // Using the email as user ID for demo
           product_id: productId,
@@ -286,9 +301,12 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (data && data.length > 0) {
+        // Use type assertion to work with the returned data
+        const wishlistData = data as unknown as WishlistItemDB[];
+        
         // Add to local state
         setWishlistItems(prev => [...prev, { 
-          id: data[0].id,
+          id: wishlistData[0].id,
           name: product.name, 
           price: product.price,
           image: product.image 
@@ -308,7 +326,7 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const removeFromWishlist = async (id: number | string) => {
+  const removeFromWishlist = async (id: string) => {
     if (!isLoggedIn || !user) {
       toast({
         title: "Authentication required",
@@ -318,9 +336,9 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
-      // Remove from Supabase
+      // Remove from Supabase using type assertion
       const { error } = await supabase
-        .from('wishlist_items')
+        .from('wishlist_items' as any)
         .delete()
         .eq('id', id);
       
@@ -353,7 +371,7 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     const stringId = id.toString();
     return wishlistItems.some(item => 
       item.id.toString() === stringId || 
-      (typeof item.id === 'number' && item.id === Number(id))
+      (typeof item.id === 'string' && item.id === stringId)
     );
   };
 

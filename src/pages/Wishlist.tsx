@@ -19,7 +19,7 @@ const Wishlist = () => {
     }
   }, [isLoggedIn, fetchWishlistItems]);
 
-  const handleRemoveFromWishlist = (id: number | string) => {
+  const handleRemoveFromWishlist = (id: string) => {
     removeFromWishlist(id);
   };
 

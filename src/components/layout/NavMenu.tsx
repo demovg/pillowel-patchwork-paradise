@@ -1,3 +1,4 @@
+
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -135,7 +136,7 @@ export function WishlistMenu() {
   const navigate = useNavigate();
   const { wishlistItems, removeFromWishlist, addToCart } = useShop();
   
-  const handleRemoveFromWishlist = (id: number, e: React.MouseEvent) => {
+  const handleRemoveFromWishlist = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     removeFromWishlist(id);
   };
