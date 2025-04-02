@@ -2,15 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
 import { useShop } from "@/contexts/ShopContext";
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
 const Cart = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const { cartItems, removeFromCart, updateCartQuantity } = useShop();
+  const { cartItems, removeFromCart, updateCartQuantity, clearCart } = useShop();
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = subtotal > 0 ? 12.00 : 0;
@@ -18,6 +16,14 @@ const Cart = () => {
   
   const handleCheckout = () => {
     navigate('/checkout');
+  };
+
+  const handleRemoveItem = (id: number) => {
+    removeFromCart(id);
+  };
+
+  const handleUpdateQuantity = (id: number, change: number) => {
+    updateCartQuantity(id, change);
   };
 
   return (
@@ -56,7 +62,7 @@ const Cart = () => {
                           <h3 className="font-medium hover:underline">{item.name}</h3>
                         </Link>
                         <button 
-                          onClick={() => removeFromCart(item.id)}
+                          onClick={() => handleRemoveItem(item.id)}
                           className="text-gray-400 hover:text-gray-600"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -65,7 +71,7 @@ const Cart = () => {
                       <p className="text-gray-600 mt-1">${item.price.toFixed(2)}</p>
                       <div className="flex items-center mt-4">
                         <button 
-                          onClick={() => updateCartQuantity(item.id, -1)}
+                          onClick={() => handleUpdateQuantity(item.id, -1)}
                           className="p-1 border rounded-l"
                           disabled={item.quantity <= 1}
                         >
@@ -75,7 +81,7 @@ const Cart = () => {
                           {item.quantity}
                         </span>
                         <button 
-                          onClick={() => updateCartQuantity(item.id, 1)}
+                          onClick={() => handleUpdateQuantity(item.id, 1)}
                           className="p-1 border rounded-r"
                         >
                           <Plus className="h-4 w-4" />
@@ -88,11 +94,18 @@ const Cart = () => {
                   </div>
                 ))}
                 
-                <div className="pt-4">
+                <div className="pt-4 flex justify-between">
                   <Link to="/shop" className="text-sm text-gray-600 hover:text-black flex items-center">
                     <ArrowRight className="h-4 w-4 mr-1 rotate-180" />
                     Continue Shopping
                   </Link>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => clearCart()} 
+                    className="text-sm"
+                  >
+                    Clear Cart
+                  </Button>
                 </div>
               </div>
               

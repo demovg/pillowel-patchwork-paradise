@@ -10,6 +10,14 @@ import Footer from '@/components/layout/Footer';
 const Wishlist = () => {
   const { wishlistItems, removeFromWishlist, addToCart } = useShop();
 
+  const handleRemoveFromWishlist = (id: number) => {
+    removeFromWishlist(id);
+  };
+
+  const handleAddToCart = (item: any) => {
+    addToCart(item);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -49,7 +57,7 @@ const Wishlist = () => {
                         variant="outline" 
                         size="sm" 
                         className="flex-1"
-                        onClick={() => addToCart(item)}
+                        onClick={() => handleAddToCart(item)}
                       >
                         <ShoppingCart className="mr-2 h-4 w-4" />
                         Add to Cart
@@ -58,7 +66,7 @@ const Wishlist = () => {
                         variant="ghost" 
                         size="sm" 
                         className="text-red-500"
-                        onClick={() => removeFromWishlist(item.id)}
+                        onClick={() => handleRemoveFromWishlist(item.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

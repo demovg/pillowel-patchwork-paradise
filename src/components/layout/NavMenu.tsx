@@ -1,4 +1,3 @@
-
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -23,6 +22,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { useShop } from "@/contexts/ShopContext"
 
 export function SearchMenu() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,44 +132,17 @@ export function UserMenu() {
 }
 
 export function WishlistMenu() {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [wishlistItems, setWishlistItems] = useState([
-    {
-      id: 1,
-      name: "Cashmere Sweater",
-      price: "$189.00",
-      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27"
-    },
-    {
-      id: 2,
-      name: "Linen Shirt Dress",
-      price: "$145.00",
-      image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8"
-    },
-    {
-      id: 3,
-      name: "Leather Crossbody Bag",
-      price: "$210.00",
-      image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7"
-    }
-  ]);
+  const { wishlistItems, removeFromWishlist, addToCart } = useShop();
   
-  const removeFromWishlist = (id: number, e: React.MouseEvent) => {
+  const handleRemoveFromWishlist = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    setWishlistItems(prev => prev.filter(item => item.id !== id));
-    toast({
-      title: "Removed from wishlist",
-      description: "Item has been removed from your wishlist."
-    });
+    removeFromWishlist(id);
   };
   
-  const addToCart = (id: number, e: React.MouseEvent) => {
+  const handleAddToCart = (item: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    toast({
-      title: "Added to cart",
-      description: "Item has been added to your cart."
-    });
+    addToCart(item);
   };
   
   const viewWishlist = () => {
@@ -210,18 +183,20 @@ export function WishlistMenu() {
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-sm">{item.name}</p>
-                  <p className="text-sm text-gray-500">{item.price}</p>
+                  <p className="text-sm text-gray-500">
+                    {typeof item.price === 'string' ? item.price : `$${item.price.toFixed(2)}`}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <button 
                     className="text-gray-500 hover:text-black"
-                    onClick={(e) => addToCart(item.id, e)}
+                    onClick={(e) => handleAddToCart(item, e)}
                   >
                     <ShoppingCart className="h-4 w-4" />
                   </button>
                   <button 
                     className="text-gray-500 hover:text-red-500"
-                    onClick={(e) => removeFromWishlist(item.id, e)}
+                    onClick={(e) => handleRemoveFromWishlist(item.id, e)}
                   >
                     <Heart className="h-4 w-4 fill-current" />
                   </button>
@@ -245,42 +220,20 @@ export function WishlistMenu() {
 }
 
 export function CartMenu() {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Organic Cotton Sweater",
-      price: 120.0,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1562157873-818bc0726f68"
-    },
-    {
-      id: 2,
-      name: "Merino Wool Cardigan",
-      price: 145.0,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1564859228273-274232fdb516"
-    }
-  ]);
+  const { cartItems, removeFromCart, updateCartQuantity } = useShop();
   
-  const handleCheckout = () => {
-    toast({
-      title: "Checkout initiated",
-      description: "This would redirect to checkout in a real implementation."
-    });
-  };
-
-  const removeItem = (id: number) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
-    toast({
-      title: "Item removed",
-      description: "Item has been removed from your cart."
-    });
+  const handleRemoveItem = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    removeFromCart(id);
   };
   
   const viewCart = () => {
     navigate('/cart');
+  };
+  
+  const handleCheckout = () => {
+    navigate('/checkout');
   };
   
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -324,10 +277,7 @@ export function CartMenu() {
                     <div className="flex justify-between">
                       <p className="font-medium text-sm line-clamp-2">{item.name}</p>
                       <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeItem(item.id);
-                        }}
+                        onClick={(e) => handleRemoveItem(item.id, e)}
                         className="text-gray-400 hover:text-gray-600"
                       >
                         <X className="h-4 w-4" />
