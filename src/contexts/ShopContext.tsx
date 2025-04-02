@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, ReactNode } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -27,6 +26,12 @@ type Product = {
   inventory: number;
   image: string;
   active?: boolean;
+  colors?: string[];
+  sizes?: string[];
+  gallery?: string[];
+  details?: string[];
+  rating?: number;
+  reviewCount?: number;
 };
 
 type ShopContextType = {
@@ -42,6 +47,7 @@ type ShopContextType = {
   addProduct: (product: Product) => void;
   editProduct: (product: Product) => void;
   getProduct: (id: string | number) => Product | undefined;
+  clearCart: () => void;
 };
 
 // Create context with default values
@@ -58,6 +64,7 @@ const ShopContext = createContext<ShopContextType>({
   addProduct: () => {},
   editProduct: () => {},
   getProduct: () => undefined,
+  clearCart: () => {},
 });
 
 // Export the provider component
@@ -233,7 +240,6 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
 
   // Product management functions
   const addProduct = (product: Product) => {
-    // Generate a new ID based on the highest existing ID
     const highestId = Math.max(...products.map(p => typeof p.id === 'string' ? parseInt(p.id) : p.id), 0);
     const newProduct = { ...product, id: (highestId + 1).toString() };
     
@@ -260,6 +266,15 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     return products.find(product => product.id.toString() === id.toString());
   };
 
+  // Clear cart function
+  const clearCart = () => {
+    setCartItems([]);
+    toast({
+      title: "Cart cleared",
+      description: "All items have been removed from your cart."
+    });
+  };
+
   // Provide context value
   const value = {
     cartItems,
@@ -273,7 +288,8 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     isInWishlist,
     addProduct,
     editProduct,
-    getProduct
+    getProduct,
+    clearCart
   };
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;
