@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -81,7 +80,7 @@ const ProductDetail = () => {
   
   const handleLike = () => {
     if (productLiked) {
-      removeFromWishlist(Number(product.id));
+      removeFromWishlist(product.id.toString());  // Convert number to string
       toast({
         title: "Removed from Wishlist",
         description: `${product.name} has been removed from your wishlist.`,
