@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Star, ThumbsUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ const ProductReviews = ({ productId, initialReviews = [] }: ProductReviewsProps)
       user: 'Michael T.',
       rating: 4,
       date: 'March 2, 2025',
-      comment: 'Very good quality and comfortable. The only reason I'm giving 4 stars instead of 5 is because the color is slightly different than what's shown in the pictures.',
+      comment: "Very good quality and comfortable. The only reason I'm giving 4 stars instead of 5 is because the color is slightly different than what's shown in the pictures.",
       helpful: 3
     },
     {
@@ -80,7 +79,6 @@ const ProductReviews = ({ productId, initialReviews = [] }: ProductReviewsProps)
       return;
     }
     
-    // In a real app, this would send the review to the backend
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleDateString('en-US', { 
       year: 'numeric', 
