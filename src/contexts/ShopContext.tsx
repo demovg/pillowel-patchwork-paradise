@@ -1,5 +1,8 @@
-import { createContext, useState, useContext, ReactNode } from 'react';
+
+import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthContext } from "../App";
 
 // Define types for our context
 type CartItem = {
@@ -11,7 +14,7 @@ type CartItem = {
 };
 
 type WishlistItem = {
-  id: number;
+  id: number | string;
   name: string;
   price: string | number;
   image: string;
@@ -42,12 +45,13 @@ type ShopContextType = {
   removeFromCart: (id: number) => void;
   updateCartQuantity: (id: number, change: number) => void;
   addToWishlist: (product: any) => void;
-  removeFromWishlist: (id: number) => void;
+  removeFromWishlist: (id: number | string) => void;
   isInWishlist: (id: number | string) => boolean;
   addProduct: (product: Product) => void;
   editProduct: (product: Product) => void;
   getProduct: (id: string | number) => Product | undefined;
   clearCart: () => void;
+  fetchWishlistItems: () => Promise<void>;
 };
 
 // Create context with default values
@@ -65,11 +69,13 @@ const ShopContext = createContext<ShopContextType>({
   editProduct: () => {},
   getProduct: () => undefined,
   clearCart: () => {},
+  fetchWishlistItems: async () => {},
 });
 
 // Export the provider component
 export const ShopProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
+  const { isLoggedIn, user } = useContext(AuthContext);
   
   // Sample initial products data
   const initialProducts = [
@@ -133,28 +139,58 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     }
   ]);
   
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([
-    {
-      id: 1,
-      name: "Cashmere Sweater",
-      price: "$189.00",
-      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27"
-    },
-    {
-      id: 2,
-      name: "Linen Shirt Dress",
-      price: "$145.00",
-      image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8"
-    },
-    {
-      id: 3,
-      name: "Leather Crossbody Bag",
-      price: "$210.00",
-      image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7"
-    }
-  ]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   
   const [products, setProducts] = useState<Product[]>(initialProducts);
+
+  // Fetch wishlist items from Supabase on login status change
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      fetchWishlistItems();
+    } else {
+      setWishlistItems([]);
+    }
+  }, [isLoggedIn, user]);
+
+  // Fetch wishlist items from Supabase
+  const fetchWishlistItems = async () => {
+    if (!isLoggedIn || !user) {
+      console.log("User not logged in, can't fetch wishlist items");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .select('*');
+      
+      if (error) {
+        console.error('Error fetching wishlist items:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load wishlist items"
+        });
+        return;
+      }
+      
+      if (data) {
+        const formattedItems: WishlistItem[] = data.map(item => ({
+          id: item.id,
+          name: item.product_name,
+          price: item.product_price,
+          image: item.product_image
+        }));
+        
+        setWishlistItems(formattedItems);
+      }
+    } catch (err) {
+      console.error('Exception fetching wishlist items:', err);
+      toast({
+        title: "Error",
+        description: "Failed to load wishlist items"
+      });
+    }
+  };
 
   // Cart functions
   const addToCart = (product: any, quantity: number = 1) => {
@@ -207,35 +243,118 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Wishlist functions
-  const addToWishlist = (product: any) => {
+  const addToWishlist = async (product: any) => {
+    if (!isLoggedIn || !user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to add items to your wishlist."
+      });
+      return;
+    }
+    
     const productId = typeof product.id === 'string' ? parseInt(product.id) : product.id;
     
-    if (!wishlistItems.some(item => item.id === productId)) {
-      setWishlistItems(prev => [...prev, { 
-        id: productId, 
-        name: product.name, 
-        price: product.price,
-        image: product.image 
-      }]);
-      
+    // Check if already in wishlist
+    if (isInWishlist(productId)) {
       toast({
-        title: "Added to wishlist",
-        description: `${product.name} has been added to your wishlist.`
+        title: "Already in wishlist",
+        description: `${product.name} is already in your wishlist.`
+      });
+      return;
+    }
+    
+    try {
+      // Add to Supabase
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .insert([{
+          user_id: user.email, // Using the email as user ID for demo
+          product_id: productId,
+          product_name: product.name,
+          product_price: typeof product.price === 'string' ? parseFloat(product.price.replace('$', '')) : product.price,
+          product_image: product.image
+        }])
+        .select();
+      
+      if (error) {
+        console.error("Error adding to wishlist:", error);
+        toast({
+          title: "Error",
+          description: "Failed to add item to wishlist"
+        });
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        // Add to local state
+        setWishlistItems(prev => [...prev, { 
+          id: data[0].id,
+          name: product.name, 
+          price: product.price,
+          image: product.image 
+        }]);
+        
+        toast({
+          title: "Added to wishlist",
+          description: `${product.name} has been added to your wishlist.`
+        });
+      }
+    } catch (err) {
+      console.error("Exception adding to wishlist:", err);
+      toast({
+        title: "Error",
+        description: "Failed to add item to wishlist"
       });
     }
   };
 
-  const removeFromWishlist = (id: number) => {
-    setWishlistItems(prev => prev.filter(item => item.id !== id));
-    toast({
-      title: "Removed from wishlist",
-      description: "Item has been removed from your wishlist."
-    });
+  const removeFromWishlist = async (id: number | string) => {
+    if (!isLoggedIn || !user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to remove items from your wishlist."
+      });
+      return;
+    }
+    
+    try {
+      // Remove from Supabase
+      const { error } = await supabase
+        .from('wishlist_items')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error("Error removing from wishlist:", error);
+        toast({
+          title: "Error",
+          description: "Failed to remove item from wishlist"
+        });
+        return;
+      }
+      
+      // Remove from local state
+      setWishlistItems(prev => prev.filter(item => item.id !== id));
+      
+      toast({
+        title: "Removed from wishlist",
+        description: "Item has been removed from your wishlist."
+      });
+    } catch (err) {
+      console.error("Exception removing from wishlist:", err);
+      toast({
+        title: "Error",
+        description: "Failed to remove item from wishlist"
+      });
+    }
   };
 
   const isInWishlist = (id: number | string) => {
-    const numId = typeof id === 'string' ? parseInt(id) : id;
-    return wishlistItems.some(item => item.id === numId);
+    const stringId = id.toString();
+    return wishlistItems.some(item => 
+      item.id.toString() === stringId || 
+      (typeof item.id === 'number' && item.id === Number(id))
+    );
   };
 
   // Product management functions
@@ -289,7 +408,8 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     addProduct,
     editProduct,
     getProduct,
-    clearCart
+    clearCart,
+    fetchWishlistItems
   };
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;

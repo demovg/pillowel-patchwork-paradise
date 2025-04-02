@@ -6,11 +6,20 @@ import { Link } from "react-router-dom";
 import { useShop } from "@/contexts/ShopContext";
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { useContext, useEffect } from "react";
+import { AuthContext } from "../App";
 
 const Wishlist = () => {
-  const { wishlistItems, removeFromWishlist, addToCart } = useShop();
+  const { wishlistItems, removeFromWishlist, addToCart, fetchWishlistItems } = useShop();
+  const { isLoggedIn } = useContext(AuthContext);
 
-  const handleRemoveFromWishlist = (id: number) => {
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchWishlistItems();
+    }
+  }, [isLoggedIn, fetchWishlistItems]);
+
+  const handleRemoveFromWishlist = (id: number | string) => {
     removeFromWishlist(id);
   };
 
@@ -25,7 +34,16 @@ const Wishlist = () => {
         <div className="container mx-auto px-4 py-32">
           <h1 className="text-3xl font-semibold mb-8">My Wishlist</h1>
           
-          {wishlistItems.length === 0 ? (
+          {!isLoggedIn ? (
+            <div className="text-center py-12">
+              <Heart className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <h2 className="text-xl font-medium mb-2">Please login to view your wishlist</h2>
+              <p className="text-gray-500 mb-6">Sign in to save and view your favorite items</p>
+              <Link to="/sign-up">
+                <Button>Sign In / Sign Up</Button>
+              </Link>
+            </div>
+          ) : wishlistItems.length === 0 ? (
             <div className="text-center py-12">
               <Heart className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h2 className="text-xl font-medium mb-2">Your wishlist is empty</h2>
